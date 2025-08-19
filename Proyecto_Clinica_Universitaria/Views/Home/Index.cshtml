@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<section class="min-vh-100 gradient-custom d-flex justify-content-center align-items-center">
+    <div class="h-100 py-5 d-flex justify-content-center align-items-center">
+        <div class="col-10 col-md-9 col-lg-6 col-xl-5 col-xxl-4 col-">
+            <div class="logo"><img src="~/img/LOGO OFICIAL_UNICAES.png" alt="" class="img-fluid"></div>
+            <div class="card  text-white" style="background-color: #880C09; border-radius: 1rem;">
+                <div class="card-body p-5 text-center">
+
+                    <h2 class="fw-bold  mb-2 text-uppercase">Iniciar Sesión</h2>
+                    <p class="text-white-50 mb-4">Ingresa tu usuario y contraseña</p>
+
+                    <form method="post" action="/Home/Index">
+                        <div class="form-outline form-white mb-4">
+                            <label class="form-label" for="typeEmailX">Usuario</label>
+                            <input type="text" id="typeEmailX" class="form-control form-control-lg" name="usuario" required />
+                        </div>
+
+                        <div class="form-outline form-white mb-4">
+                            <label class="form-label" for="typePasswordX">Contraseña</label>
+                            <input type="password" id="typePasswordX" class="form-control form-control-lg" name="contrasena" required />
+                        </div>
+
+                        <button class="btn btn-outline-light btn-lg px-5 fs-6" type="submit">Iniciar Sesión</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

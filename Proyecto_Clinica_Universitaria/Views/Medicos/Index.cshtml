@@ -1,0 +1,406 @@
+﻿@{
+    ViewData["Title"] = "Médicos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using System.Linq
+@using Proyecto_Clinica_Universitaria.Models
+@model Proyecto_Clinica_Universitaria.Models.MedicoModel
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<main class="p-3">
+
+    <!-- Tabla de Médicos -->
+    <section class="bg-white p-3 rounded mb-3">
+        <!-- Buscador + Contador -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Buscar..." id="txtBuscarMedicos" />
+            </div>
+            <div class="text-end">
+                <span class="badge bg-warning text-dark p-2">
+                    <i class="bi bi-person-badge"></i> Médico(s)
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive" style="max-height:70vh; overflow-y:auto;">
+            <table class="table table-hover align-middle" id="tblMedicos">
+                <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th style="width:68px;">Foto</th> <!-- NUEVA COLUMNA -->
+                        <th>Cédula</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Especialidad</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th style="width: 120px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var lista = ViewBag.ListaMedicos as List<MedicoModel>;
+                        var esps = ViewBag.ListaEspecialidades as List<MedicosEspecialidadModel>;
+                    }
+                    @if (lista != null && lista.Count > 0)
+                    {
+                        foreach (var item in lista)
+                        {
+                            var nomEsp = esps?.FirstOrDefault(x => x.Codigo == item.EspecialidadCodigo)?.Especialidad ?? "";
+                            <tr class="row-medico"
+                                data-codigo="@item.Codigo"
+                                data-cedula="@item.Cedula"
+                                data-nombre="@item.Nombre"
+                                data-apellido="@item.Apellido"
+                                data-especialidad="@item.EspecialidadCodigo"
+                                data-telefono="@(item.Telefono ?? "")"
+                                data-correo="@(item.Correo ?? "")"
+                                data-usuario="@(item.Usuario ?? "")"
+                                data-contrasena="@(item.Contrasena ?? "")"
+                                data-estado="@item.Estado"
+                                data-imagenmedico="@(item.ImagenMedico ?? "")">
+                                <td class="text-center">
+                                    <img class="foto img-thumbnail"
+                                         data-src="@(item.ImagenMedico ?? "")"
+                                         alt="Foto de @item.Nombre @item.Apellido"
+                                         loading="lazy"
+                                         style="width:56px;height:56px;object-fit:cover;" />
+                                </td>
+                                <td>@item.Cedula</td>
+                                <td>@item.Nombre</td>
+                                <td>@item.Apellido</td>
+                                <td>@nomEsp</td>
+                                <td>@item.Telefono</td>
+                                <td>@item.Estado</td>
+                                <td class="text-end"></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8" class="text-center text-muted">Sin registros para mostrar.</td></tr> <!-- colspan 8 por la nueva columna -->
+                    }
+                </tbody>
+            </table>
+        </div>
+        <small class="text-muted">Tip: haz clic en una fila para seleccionarla y luego usa los botones.</small>
+    </section>
+
+    <!-- BARRA DE ACCIONES -->
+    <section class="d-flex flex-wrap justify-content-center gap-3 mt-4 p-3 bg-white rounded">
+        <button type="button" id="btnNuevo"
+                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                style="background-color:#880C09;">
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-md-inline">Nuevo</span>
+        </button>
+
+        <button type="button" id="btnEditar"
+                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                style="background-color:#880C09;" disabled>
+            <i class="bi bi-pencil"></i>
+            <span class="d-none d-md-inline">Editar</span>
+        </button>
+
+        <button type="button" id="btnEliminar"
+                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                style="background-color:#880C09;" disabled>
+            <i class="bi bi-trash"></i>
+            <span class="d-none d-md-inline">Eliminar</span>
+        </button>
+
+        <!-- Este botón envía el formulario del modal -->
+        <button type="submit" id="btnGuardar" form="frmMedico"
+                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                style="background-color:#880C09;" disabled>
+            <i class="bi bi-save"></i>
+            <span class="d-none d-md-inline">Guardar</span>
+        </button>
+    </section>
+
+</main>
+
+<!-- Form oculto para eliminar -->
+<form asp-action="Eliminar" asp-controller="Medicos" method="post" id="frmEliminar" class="d-none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="codigo" id="hdnEliminarCodigo" />
+</form>
+
+<!-- MODAL Confirmar Eliminación -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered d-flex justify-content-center align-items-center">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmDeleteText" class="mb-0">¿Eliminar médico?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnConfirmarEliminar" class="btn text-white" style="background-color:#880C09;">
+                    <i class="bi bi-trash"></i> Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Crear/Editar Médico (contiene el formulario original) -->
+<div class="modal fade" id="modalMedico" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable d-flex justify-content-center align-items-center">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Médico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <!-- IMPORTANTE: enctype para subir el archivo -->
+                <form asp-action="GuardarOEditar" asp-controller="Medicos" method="post" id="frmMedico" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Código</label>
+                            <input asp-for="Codigo" id="Codigo" class="form-control" readonly value="@(Model?.Codigo ?? 0)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cédula</label>
+                            <input asp-for="Cedula" id="Cedula" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Nombre</label>
+                            <input asp-for="Nombre" id="Nombre" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Apellido</label>
+                            <input asp-for="Apellido" id="Apellido" class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Especialidad</label>
+                            <select asp-for="EspecialidadCodigo" id="EspecialidadCodigo"
+                                    asp-items="@(new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+                                                                                                        ViewBag.ListaEspecialidades as List<MedicosEspecialidadModel>,
+                                                                                                        nameof(MedicosEspecialidadModel.Codigo),
+                                                                                                        nameof(MedicosEspecialidadModel.Especialidad),
+                                                                                                        Model?.EspecialidadCodigo))"
+                                    class="form-select">
+                                <option value="">Seleccione...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Teléfono</label>
+                            <input asp-for="Telefono" id="Telefono" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Correo</label>
+                            <input asp-for="Correo" id="Correo" class="form-control" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Usuario</label>
+                            <input asp-for="Usuario" id="Usuario" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Password</label>
+                            <input asp-for="Contrasena" id="Contrasena" type="password" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Estado</label>
+                            <select asp-for="Estado" id="Estado" class="form-select">
+                                <option value="Activo">Activo</option>
+                                <option value="Pasivo">Pasivo</option>
+                            </select>
+                        </div>
+
+                        <!-- Imagen del médico -->
+                        <div class="col-12">
+                            <label class="form-label">Imagen del médico</label>
+                            <div class="input-group">
+                                <!-- Campo que guarda la ruta/nombre en BD -->
+                                <input asp-for="ImagenMedico" id="ImagenMedico" class="form-control" placeholder="ruta/nombre (opcional)" />
+                                <!-- Archivo a subir -->
+                                <input type="file" id="fileImagenMedico" name="imagenArchivo" accept="image/*" class="form-control" />
+                            </div>
+                            <small class="text-muted">Si subes un archivo, se guardará en el servidor y este campo se actualizará automáticamente.</small>
+
+                            <!-- Vista previa -->
+                            <div class="mt-2">
+                                <img id="previewMedico" src="#" alt="" class="img-thumbnail d-none" style="max-height:140px;" />
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnGuardarModalMedico" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const $ = (sel) => document.querySelector(sel);
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
+      const setDisabled = (el, v) => { if (el) el.disabled = !!v; };
+      const hasBS = !!(window.bootstrap && bootstrap.Modal);
+
+      // Placeholder SVG gris para la columna Foto
+      const PH = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='9' fill='%236c757d'>Sin%20foto</text></svg>";
+
+      // Inicializa miniaturas de la tabla (columna Foto)
+      document.querySelectorAll('img.foto').forEach(img=>{
+         const s = (img.dataset.src||"").trim();
+         img.src = s || PH;
+         img.onerror = () => { img.onerror=null; img.src = PH; };
+      });
+
+      let selectedRow = null;
+      let selectedId = 0;
+
+      const btnNuevo = $("#btnNuevo");
+      const btnEditar = $("#btnEditar");
+      const btnEliminar = $("#btnEliminar");
+      const btnGuardar = $("#btnGuardar");
+      const btnConfirmarEliminar = $("#btnConfirmarEliminar");
+      const confirmText = $("#confirmDeleteText");
+      const modalConfirmEl = document.getElementById('confirmDeleteModal');
+
+      const modalMedicoEl = document.getElementById('modalMedico');
+      let modalMedico = null;
+      const openMedicoModal = () => {
+        if (!hasBS) { alert("Falta Bootstrap JS (bootstrap.bundle.min.js) en _Layout."); return; }
+        if (!modalMedico) modalMedico = new bootstrap.Modal(modalMedicoEl);
+        modalMedico.show();
+      };
+
+      // Filtro
+      const txtBuscar = document.getElementById('txtBuscarMedicos');
+      txtBuscar?.addEventListener('input', function(){
+        const q = this.value.toLowerCase().trim();
+        document.querySelectorAll("#tblMedicos tbody tr").forEach(tr=>{
+          const t = (tr.innerText||"").toLowerCase();
+          tr.style.display = t.includes(q) ? "" : "none";
+        });
+      });
+
+      // Helpers preview
+      const preview = $("#previewMedico");
+      const txtRuta = $("#ImagenMedico");
+      const fileInput = $("#fileImagenMedico");
+      const showPreviewFromUrl = (url) => {
+        if (!preview) return;
+        const v = (url || "").trim();
+        if (!v) { preview.src="#"; preview.classList.add("d-none"); return; }
+        preview.src = v;
+        preview.onload = () => preview.classList.remove("d-none");
+        preview.onerror = () => { preview.src="#"; preview.classList.add("d-none"); };
+      };
+
+      // Selección de fila
+      document.querySelectorAll("#tblMedicos tbody tr.row-medico").forEach(tr => {
+        tr.addEventListener("click", () => {
+          if (selectedRow) selectedRow.classList.remove("table-active");
+          tr.classList.add("table-active");
+          selectedRow = tr;
+          selectedId = parseInt(tr.dataset.codigo || "0");
+
+          setVal("Codigo", tr.dataset.codigo);
+          setVal("Cedula", tr.dataset.cedula);
+          setVal("Nombre", tr.dataset.nombre);
+          setVal("Apellido", tr.dataset.apellido);
+          setVal("EspecialidadCodigo", tr.dataset.especialidad);
+          setVal("Telefono", tr.dataset.telefono);
+          setVal("Correo", tr.dataset.correo);
+          setVal("Usuario", tr.dataset.usuario);
+          setVal("Contrasena", tr.dataset.contrasena);
+          setVal("Estado", tr.dataset.estado);
+          setVal("ImagenMedico", tr.dataset.imagenmedico || "");
+
+          showPreviewFromUrl(tr.dataset.imagenmedico || "");
+
+          setDisabled(btnEditar, false);
+          setDisabled(btnEliminar, false);
+          setDisabled(btnGuardar, false);
+        });
+      });
+
+      // Nuevo
+      btnNuevo?.addEventListener("click", () => {
+        const form = document.getElementById("frmMedico");
+        form?.reset();
+        setVal("Codigo", 0);
+        if (selectedRow) selectedRow.classList.remove("table-active");
+        selectedRow = null;
+        selectedId = 0;
+        if (preview){ preview.src="#"; preview.classList.add("d-none"); }
+        if (fileInput) fileInput.value = "";
+        setDisabled(btnEditar, true);
+        setDisabled(btnEliminar, true);
+        setDisabled(btnGuardar, false);
+        openMedicoModal();
+        setTimeout(() => document.getElementById("Cedula")?.focus(), 150);
+      });
+
+      // Editar
+      btnEditar?.addEventListener("click", () => {
+        if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
+        openMedicoModal();
+        setTimeout(() => document.getElementById("Nombre")?.focus(), 150);
+      });
+
+      // Guardar (modal)
+      document.getElementById('btnGuardarModalMedico')?.addEventListener("click", () => {
+        document.getElementById("frmMedico")?.submit();
+      });
+
+      // Eliminar -> confirm
+      btnEliminar?.addEventListener("click", () => {
+        if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
+        document.getElementById("hdnEliminarCodigo").value = selectedId;
+        const texto = `¿Eliminar al médico ${selectedRow?.dataset?.nombre ?? ''} ${selectedRow?.dataset?.apellido ?? ''} (Cédula: ${selectedRow?.dataset?.cedula ?? ''})?`;
+        if (confirmText) confirmText.textContent = texto;
+
+        if (hasBS) new bootstrap.Modal(modalConfirmEl).show();
+        else if (confirm(texto)) document.getElementById("frmEliminar").submit();
+      });
+
+      // Confirmar eliminación
+      btnConfirmarEliminar?.addEventListener("click", () => {
+        document.getElementById("frmEliminar").submit();
+      });
+
+      // Habilitar Guardar si cambian campos del form del modal
+      document.addEventListener("input", (ev) => {
+        if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, false);
+      });
+      document.addEventListener("change", (ev) => {
+        if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, false);
+      });
+
+      // Preview cuando cambian ruta o archivo
+      txtRuta?.addEventListener("change", () => showPreviewFromUrl(txtRuta.value));
+      fileInput?.addEventListener("change", () => {
+        const f = fileInput.files && fileInput.files[0];
+        if (!f) { showPreviewFromUrl(txtRuta?.value || ""); return; }
+        try {
+          const url = URL.createObjectURL(f);
+          if (preview) { preview.src = url; preview.classList.remove("d-none"); }
+        } catch {
+          if (preview) { preview.src="#"; preview.classList.add("d-none"); }
+        }
+      });
+    });
+</script>

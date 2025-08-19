@@ -1,0 +1,206 @@
+﻿@model Proyecto_Clinica_Universitaria.Models.ConsultasModel
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<main class="p-3">
+
+    <form asp-action="Guardar" asp-controller="Consultas" method="post">
+
+        <div class="p-3 bg-white border-bottom">
+            <div class="row justify-content-start">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Buscar paciente" />
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid">
+
+            <section class="row">
+
+                <article class="col-md-6 p-3 border-end bg-white">
+                    <h5 class="mb-4">Datos del Paciente</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Codigo" class="form-label"></label>
+                            <input asp-for="Codigo" name="Codigo" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Paciente" class="form-label"></label>
+                            <select asp-for="Paciente" class="form-select">
+                                <option value="">-- Selecciona un paciente --</option>
+                                @if (ViewBag.ListaPacientes != null)
+                                {
+                                    foreach (var paciente in ViewBag.ListaPacientes)
+                                    {
+                                        if (paciente.Codigo == Model.Paciente)
+                                        {
+                                            <option value="@paciente.Codigo" selected="selected">@paciente.Nombre</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@paciente.Codigo">@paciente.Nombre</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Cedula" class="form-label"></label>
+                            <input asp-for="Cedula" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Nombre" class="form-label"></label>
+                            <input asp-for="Nombre" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Apellido" class="form-label"></label>
+                            <input asp-for="Apellido" class="form-control" readonly />
+                        </div>
+                    </div>
+                </article>
+
+                <article class="col-md-6 p-3 bg-white">
+                    <h5 class="mb-4">Datos Médicos</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Fecha" class="form-label"></label>
+                            <input asp-for="Fecha" class="form-control" type="date" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Temperatura" class="form-label"></label>
+                            <input asp-for="Temperatura" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Pulso" class="form-label"></label>
+                            <input asp-for="Pulso" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Medico" class="form-label"></label>
+                            <select asp-for="Medico" class="form-select">
+                                <option value="">-- Selecciona un médico --</option>
+                                @if (ViewBag.ListaMedicos != null)
+                                {
+                                    foreach (var medico in ViewBag.ListaMedicos)
+                                    {
+                                        if (medico.Codigo == Model.Medico)
+                                        {
+                                            <option value="@medico.Codigo" selected="selected">@medico.Nombre</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@medico.Codigo">@medico.Nombre</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Peso" class="form-label"></label>
+                            <input asp-for="Peso" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Presion" class="form-label"></label>
+                            <input asp-for="Presion" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="SwatO2" class="form-label"></label>
+                            <input asp-for="SwatO2" class="form-control" />
+                        </div>
+                    </div>
+                </article>
+
+            </section>
+
+            <section class="bg-white p-3 mt-4 rounded">
+                <h6 class="mb-3">Recordatorio</h6>
+                <textarea asp-for="Recordatorio" class="form-control" rows="3"></textarea>
+            </section>
+
+            <section class="bg-white p-3 mt-4 rounded">
+                <h6 class="mb-3">Diagnóstico</h6>
+                <div class="mb-3">
+                    <label asp-for="Evolucion" class="form-label"></label>
+                    <textarea asp-for="Evolucion" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Prescripcion" class="form-label"></label>
+                    <textarea asp-for="Prescripcion" class="form-control" rows="3"></textarea>
+                </div>
+            </section>
+
+            <section class="d-flex justify-content-center gap-3 mt-4 p-3 bg-white rounded">
+                <button type="submit" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2" style="background-color:#880C09;">
+                    <i class="bi bi-save"></i>
+                    <span class="d-none d-md-inline">Guardar</span>
+                </button>
+            </section>
+
+        </div>
+
+    </form>
+</main>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const selPaciente = document.querySelector("select[name='Paciente']");
+            const txtCodigo   = document.querySelector("input[name='Codigo']");
+            const txtCedula   = document.querySelector("input[name='Cedula']");
+            const txtNombre   = document.querySelector("input[name='Nombre']");
+            const txtApellido = document.querySelector("input[name='Apellido']");
+
+            const endpoint = '@Url.Action("ObtenerPaciente", "Paciente")'; // ✔ ruta correcta (singular)
+
+            function limpiar() {
+                txtCodigo.value = "";
+                txtCedula.value = "";
+                txtNombre.value = "";
+                txtApellido.value = "";
+            }
+
+            function cargarPaciente(id) {
+                if (!id) { limpiar(); return; }
+                fetch(`${endpoint}?id=${encodeURIComponent(id)}`)
+                    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                    .then(d => {
+                        if (!d) { limpiar(); return; }
+                        // Si tu JSON sale con PascalCase, cambia a d.Cedula/d.Nombre/d.Apellido
+                        txtCodigo.value = d.codigo ?? "";
+                        txtCedula.value  = d.cedula  ?? "";
+                        txtNombre.value  = d.nombre  ?? "";
+                        txtApellido.value = d.apellido ?? "";
+                    })
+                    .catch(err => {
+                        console.error("Error obteniendo paciente:", err);
+                        limpiar();
+                    });
+            }
+
+            if (selPaciente) {
+                // 1) Rellenar si ya viene uno seleccionado al cargar la página
+                if (selPaciente.value) cargarPaciente(selPaciente.value);
+
+                // 2) Rellenar cada vez que cambie la selección
+                selPaciente.addEventListener("change", e => cargarPaciente(e.target.value));
+            }
+        });
+    </script>
+    }

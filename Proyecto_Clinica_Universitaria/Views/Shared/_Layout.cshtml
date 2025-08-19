@@ -1,0 +1,156 @@
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    bool mostrarSidebar = !(currentController == "Home" && currentAction == "Index");
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Proyecto_Clinica_Universitaria</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Proyecto_Clinica_Universitaria.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home.css" />
+    <link rel="stylesheet" href="~/css/medicosStyles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Linking Google fonts for icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0">
+    <!-- Bootstrap Icons or Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded">
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    @RenderSection("styles", required: false)
+</head>
+<body class="min-vh-100">
+
+    <!-- Fondo oscuro (overlay para móvil) -->
+    <div id="overlay" class="d-sm-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none" style="z-index: 1040;"></div>
+
+    <!-- Botón hamburguesa solo en móviles -->
+    <button id="toggleSidebar" class="btn btn-outline-dark  top-0 start-0 m-3" style="z-index: 1050;">
+        <span class="material-symbols-rounded">menu</span>
+    </button>
+
+    <div class="d-flex min-vh-100">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="bg-dark text-white p-3 min-vh-100" style="width: 270px; transition: transform 0.3s ease;">
+            <div class="d-flex align-items-center mb-4">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none">
+                    <img src="logo.png" alt="Logo" class="rounded-circle me-2" width="40" height="40">
+                    <span class="fw-bold">Clínica</span>
+                </a>
+                <button id="toggleSidebar2" class="btn btn-outline-light d-none ms-auto">
+                    <span class="material-symbols-rounded">menu</span>
+                </button>
+            </div>
+
+            <!-- Enlaces de navegación -->
+            <ul class="nav flex-column">
+
+                <li class="nav-item"><a href="#" class="nav-link text-white"><span class="material-symbols-rounded me-2">star</span> Inicio</a></li>
+                <li class="nav-item">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuMedicos" role="button" aria-expanded="false" aria-controls="submenuMedicos">
+                        <span><span class="material-symbols-rounded me-2">dashboard</span> Médicos</span>
+                        <span class="material-symbols-rounded">expand_more</span>
+                    </a>
+                    <div class="collapse ps-4" id="submenuMedicos">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link text-white-50" asp-controller="MedicosEspecialidad" asp-action="Index">Especialidad</a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" asp-controller="Medicos" asp-action="Index">Médicos</a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" href="#">Registro</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuPacientes" role="button" aria-expanded="false" aria-controls="submenuPacientes">
+                        <span><span class="material-symbols-rounded me-2">dashboard</span> Pacientes</span>
+                        <span class="material-symbols-rounded">expand_more</span>
+                    </a>
+                    <div class="collapse ps-4" id="submenuPacientes">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link text-white-50" asp-controller="Consultas" asp-action="Index">Carrera</a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" asp-controller="Paciente" asp-action="Index">Paciente</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenuConsultas" role="button" aria-expanded="false" aria-controls="submenuConsultas">
+                        <span><span class="material-symbols-rounded me-2">dashboard</span> Consulta</span>
+                        <span class="material-symbols-rounded">expand_more</span>
+                    </a>
+                    <div class="collapse ps-4" id="submenuConsultas">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link text-white-50" asp-controller="Consultas" asp-action="Index">Consulta</a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" asp-controller="HistorialConsultas" asp-action="Index">Historial Clinico</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item"><a class="nav-link text-white" asp-controller="Medicamentos" asp-action="Index"><span class="material-symbols-rounded me-2">dashboard</span>Medicamentos</a></li>
+                <li class="nav-item"><a href="#" class="nav-link text-white"><span class="material-symbols-rounded me-2">insert_chart</span> Administracion</a></li>
+                
+                <li class="nav-item"><a href="#" class="nav-link text-white"><span class="material-symbols-rounded me-2">settings</span> Settings</a></li>
+            </ul>
+
+            <hr class="text-secondary">
+
+            <ul class="nav flex-column mt-auto">
+                <li class="nav-item"><a href="#" class="nav-link text-white"><span class="material-symbols-rounded me-2">account_circle</span> Profile</a></li>
+                <li class="nav-item"><a href="#" class="nav-link text-white"><span class="material-symbols-rounded me-2">logout</span> Logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- Contenido principal -->
+        <main class="flex-grow-1">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script para toggle responsive -->
+    <script>
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const toggleBtn2 = document.getElementById('toggleSidebar2');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        if (toggleBtn && sidebar && overlay) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('d-none');
+                toggleBtn2.classList.toggle('d-none')
+            });
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('show');
+                overlay.classList.add('d-none');
+                toggleBtn2.classList.toggle('d-none')
+            });
+
+            toggleBtn2.addEventListener('click', () => {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('d-none');
+                toggleBtn2.classList.toggle('d-none')
+            });
+        }
+
+        
+    </script>
+
+    @RenderSection("Scripts", required: false)
+
+
+</body>
+
+</html>
+
+
+
+

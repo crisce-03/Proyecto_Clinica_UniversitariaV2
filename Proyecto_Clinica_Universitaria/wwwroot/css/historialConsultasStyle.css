@@ -1,0 +1,63 @@
+﻿.card-box {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+.top-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+    .top-buttons button {
+        background-color: #212529;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+    }
+
+.history-input .icon {
+    position: absolute;
+    font-size: 1.2rem;
+    color: #fcb900;
+}
+
+/* Tabla responsive como tarjetas */
+@media (max-width: 1500px) {
+    table thead {
+        display: none;
+    }
+
+    table,
+    table tbody,
+    table tr,
+    table td {
+        display: block;
+        width: 100%;
+    }
+
+        table tr {
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #fff;
+        }
+
+        table td {
+            text-align: right;
+            padding-left: 50%;
+            position: relative;
+        }
+
+            table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 1rem;
+                width: 45%;
+                font-weight: bold;
+                text-align: left;
+            }
+}

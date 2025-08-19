@@ -1,0 +1,11 @@
+# Builds
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Configs sensibles
+appsettings.json
+appsettings.*.json
+appsettings.Development.json
+
