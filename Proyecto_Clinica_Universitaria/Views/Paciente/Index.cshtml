@@ -33,6 +33,7 @@
         <table class="table table-hover align-middle" id="tblPacientes">
             <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                 <tr>
+                    <th style="width:68px;">Foto</th> <!-- NUEVO -->
                     <th>Código</th>
                     <th>Cédula</th>
                     <th>Nombre</th>
@@ -47,32 +48,47 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var paciente in Model.ListaPacientes)
+                @if (Model.ListaPacientes != null && Model.ListaPacientes.Any())
                 {
-                    <tr class="row-paciente"
-                        data-codigo="@paciente.Codigo"
-                        data-cedula="@paciente.Cedula"
-                        data-nombre="@paciente.Nombre"
-                        data-apellido="@paciente.Apellido"
-                        data-sexo="@paciente.Sexo"
-                        data-edad="@paciente.Edad"
-                        data-ocupacion="@paciente.Ocupacion"
-                        data-estadocivil="@paciente.EstadoCivil"
-                        data-domicilio="@paciente.Domicilio"
-                        data-telefono="@paciente.Telefono"
-                        data-estado="@paciente.Estado">
-                        <td>@paciente.Codigo</td>
-                        <td>@paciente.Cedula</td>
-                        <td>@paciente.Nombre</td>
-                        <td>@paciente.Apellido</td>
-                        <td>@paciente.Sexo</td>
-                        <td>@paciente.Edad</td>
-                        <td>@paciente.Ocupacion</td>
-                        <td>@paciente.EstadoCivil</td>
-                        <td>@paciente.Domicilio</td>
-                        <td>@paciente.Telefono</td>
-                        <td>@paciente.Estado</td>
-                    </tr>
+                    foreach (var paciente in Model.ListaPacientes)
+                    {
+                        <tr class="row-paciente"
+                            data-codigo="@paciente.Codigo"
+                            data-cedula="@paciente.Cedula"
+                            data-nombre="@paciente.Nombre"
+                            data-apellido="@paciente.Apellido"
+                            data-sexo="@paciente.Sexo"
+                            data-edad="@paciente.Edad"
+                            data-ocupacion="@paciente.Ocupacion"
+                            data-estadocivil="@paciente.EstadoCivil"
+                            data-domicilio="@paciente.Domicilio"
+                            data-telefono="@paciente.Telefono"
+                            data-estado="@paciente.Estado"
+                            data-imagenpaciente="@(paciente.ImagenPaciente ?? "")">
+                            <td class="text-center">
+                                <img class="foto img-thumbnail"
+                                     data-src="@(paciente.ImagenPaciente ?? "")"
+                                     alt="Foto de @paciente.Nombre @paciente.Apellido"
+                                     loading="lazy"
+                                     style="width:56px;height:56px;object-fit:cover;" />
+                            </td>
+                            <td>@paciente.Codigo</td>
+                            <td>@paciente.Cedula</td>
+                            <td>@paciente.Nombre</td>
+                            <td>@paciente.Apellido</td>
+                            <td>@paciente.Sexo</td>
+                            <td>@paciente.Edad</td>
+                            <td>@paciente.Ocupacion</td>
+                            <td>@paciente.EstadoCivil</td>
+                            <td>@paciente.Domicilio</td>
+                            <td>@paciente.Telefono</td>
+                            <td>@paciente.Estado</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="12" class="text-center text-muted">Sin registros para mostrar.</td></tr>
                 }
             </tbody>
         </table>
@@ -132,68 +148,98 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <form asp-action="Guardar" asp-controller="Paciente" method="post" id="frmPaciente">
+                <!-- IMPORTANTE: enctype para subir archivo -->
+                <form asp-action="Guardar" asp-controller="Paciente" method="post" id="frmPaciente" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <div class="row g-3">
                         <div class="col-md-2">
                             <label class="form-label">Código</label>
-                            <input type="text" class="form-control" id="Codigo" name="NuevoPaciente.Codigo" readonly />
+                            <input type="text" class="form-control" id="Codigo" name="NuevoPaciente.Codigo" value="@(Model?.NuevoPaciente?.Codigo ?? 0)" readonly />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Carnet</label>
-                            <input type="text" class="form-control" id="Cedula" name="NuevoPaciente.Cedula" required />
+                            <input type="text" class="form-control" id="Cedula" name="NuevoPaciente.Cedula" value="@(Model?.NuevoPaciente?.Cedula ?? "")" required />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="Nombre" name="NuevoPaciente.Nombre" />
+                            <input type="text" class="form-control" id="Nombre" name="NuevoPaciente.Nombre" value="@(Model?.NuevoPaciente?.Nombre ?? "")" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Apellido</label>
-                            <input type="text" class="form-control" id="Apellido" name="NuevoPaciente.Apellido" />
+                            <input type="text" class="form-control" id="Apellido" name="NuevoPaciente.Apellido" value="@(Model?.NuevoPaciente?.Apellido ?? "")" />
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Edad</label>
-                            <input type="number" class="form-control" id="Edad" name="NuevoPaciente.Edad" min="17" />
+                            <input type="number" class="form-control" id="Edad" name="NuevoPaciente.Edad" value="@(Model?.NuevoPaciente?.Edad ?? 0)" min="17" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Sexo</label>
                             <select class="form-select" id="Sexo" name="NuevoPaciente.Sexo">
-                                <option>Femenino</option>
-                                <option>Masculino</option>
+                                @{
+                                    var sexo = Model?.NuevoPaciente?.Sexo ?? "Femenino";
+                                }
+                                <option selected="@(sexo == "Femenino")">Femenino</option>
+                                <option selected="@(sexo == "Masculino")">Masculino</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Carrera</label>
                             <select class="form-select" id="Ocupacion" name="NuevoPaciente.Ocupacion">
+                                @{
+                                    var oc = Model?.NuevoPaciente?.Ocupacion ?? "";
+                                }
                                 <option value="">Seleccione...</option>
-                                <option>Ingeniería en Desarrollo de Software</option>
-                                <option>Medicina</option>
-                                <option>Derecho</option>
-                                <option>Arquitectura</option>
-                                <option>Administración</option>
+                                <option selected="@(oc == "Ingeniería en Desarrollo de Software")">Ingeniería en Desarrollo de Software</option>
+                                <option selected="@(oc == "Medicina")">Medicina</option>
+                                <option selected="@(oc == "Derecho")">Derecho</option>
+                                <option selected="@(oc == "Arquitectura")">Arquitectura</option>
+                                <option selected="@(oc == "Administración")">Administración</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Estado Civil</label>
                             <select class="form-select" id="EstadoCivil" name="NuevoPaciente.EstadoCivil">
-                                <option>Casado/a</option>
-                                <option>Soltero/a</option>
+                                @{
+                                    var ec = Model?.NuevoPaciente?.EstadoCivil ?? "Soltero/a";
+                                }
+                                <option selected="@(ec == "Casado/a")">Casado/a</option>
+                                <option selected="@(ec == "Soltero/a")">Soltero/a</option>
                             </select>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Domicilio</label>
-                            <input type="text" class="form-control" id="Domicilio" name="NuevoPaciente.Domicilio" />
+                            <input type="text" class="form-control" id="Domicilio" name="NuevoPaciente.Domicilio" value="@(Model?.NuevoPaciente?.Domicilio ?? "")" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Teléfono</label>
-                            <input type="text" class="form-control" id="Telefono" name="NuevoPaciente.Telefono" />
+                            <input type="text" class="form-control" id="Telefono" name="NuevoPaciente.Telefono" value="@(Model?.NuevoPaciente?.Telefono ?? "")" placeholder="####-####" />
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Estado</label>
                             <select class="form-select" id="Estado" name="NuevoPaciente.Estado">
-                                <option>Activo</option>
-                                <option>Pasivo</option>
+                                @{
+                                    var est = Model?.NuevoPaciente?.Estado ?? "Activo";
+                                }
+                                <option selected="@(est == "Activo")">Activo</option>
+                                <option selected="@(est == "Pasivo")">Pasivo</option>
                             </select>
+                        </div>
+
+                        <!-- Imagen del paciente -->
+                        <div class="col-12">
+                            <label class="form-label">Imagen del paciente</label>
+                            <div class="input-group">
+                                <!-- Campo texto que guarda la URL en BD -->
+                                <input type="text" class="form-control" id="ImagenPaciente" name="NuevoPaciente.ImagenPaciente" value="@(Model?.NuevoPaciente?.ImagenPaciente ?? "")" placeholder="ruta/nombre (opcional)" />
+                                <!-- Archivo a subir -->
+                                <input type="file" id="fileImagenPaciente" name="imagenArchivo" accept="image/*" class="form-control" />
+                            </div>
+                            <small class="text-muted">Si subes un archivo, se guardará en Azure Blob y este campo se actualizará con la URL pública.</small>
+
+                            <!-- Vista previa -->
+                            <div class="mt-2">
+                                <img id="previewPaciente" src="#" alt="" class="img-thumbnail d-none" style="max-height:140px;" />
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -205,7 +251,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- MODAL DE VALIDACIÓN -->
 <div class="modal fade" id="validationModal" tabindex="-1" aria-hidden="true">
@@ -228,148 +273,200 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const $ = (sel) => document.querySelector(sel);
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
-            const setDisabled = (el, v) => { if (el) el.disabled = !!v; };
-            const hasBS = !!(window.bootstrap && bootstrap.Modal);
+          const $ = (sel) => document.querySelector(sel);
+          const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
+          const setDisabled = (el, v) => { if (el) el.disabled = !!v; };
+          const hasBS = !!(window.bootstrap && bootstrap.Modal);
 
-            let selectedRow = null;
-            let pacienteId = 0;
+          // Placeholder SVG gris
+          const PH = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='9' fill='%236c757d'>Sin%20foto</text></svg>";
 
-            const btnNuevo = $("#btnNuevo");
-            const btnEditar = $("#btnEditar");
-            const btnEliminar = $("#btnEliminar");
-            const btnGuardarModal = $("#btnGuardarModalPaciente");
+          // Inicializa miniaturas de la tabla (columna Foto)
+          document.querySelectorAll('img.foto').forEach(img=>{
+            const s = (img.dataset.src||"").trim();
+            img.src = s || PH;
+            img.onerror = () => { img.onerror=null; img.src = PH; };
+          });
 
-            const modalPacienteEl = $("#modalPaciente");
-            let modalPaciente = null;
-            const openPacienteModal = () => {
-                if (!hasBS) { alert("Falta Bootstrap JS."); return; }
-                if (!modalPaciente) modalPaciente = new bootstrap.Modal(modalPacienteEl);
-                modalPaciente.show();
+          // Referencias imagen en modal
+          const preview = $("#previewPaciente");
+          const txtRuta = $("#ImagenPaciente");
+          const fileInput = $("#fileImagenPaciente");
+
+          const showPreviewFromUrl = (url) => {
+            if (!preview) return;
+            const v = (url || "").trim();
+            if (!v) { preview.src="#"; preview.classList.add("d-none"); return; }
+            preview.src = v;
+            preview.onload = () => preview.classList.remove("d-none");
+            preview.onerror = () => { preview.src="#"; preview.classList.add("d-none"); };
+          };
+
+          let selectedRow = null;
+          let pacienteId = 0;
+
+          const btnNuevo = $("#btnNuevo");
+          const btnEditar = $("#btnEditar");
+          const btnEliminar = $("#btnEliminar");
+          const btnGuardarModal = $("#btnGuardarModalPaciente");
+
+          const modalPacienteEl = $("#modalPaciente");
+          let modalPaciente = null;
+          const openPacienteModal = () => {
+            if (!hasBS) { alert("Falta Bootstrap JS."); return; }
+            if (!modalPaciente) modalPaciente = new bootstrap.Modal(modalPacienteEl);
+            modalPaciente.show();
+          };
+
+          // Filtro
+          const txtBuscar = $("#txtBuscarPacientes");
+          txtBuscar?.addEventListener('input', function () {
+            const q = this.value.toLowerCase().trim();
+            document.querySelectorAll("#tblPacientes tbody tr").forEach(tr => {
+              const t = (tr.innerText || "").toLowerCase();
+              tr.style.display = t.includes(q) ? "" : "none";
+            });
+          });
+
+          // Selección de fila
+          document.querySelectorAll("#tblPacientes tbody tr.row-paciente").forEach(tr => {
+            tr.addEventListener("click", () => {
+              if (selectedRow) selectedRow.classList.remove("table-active");
+              tr.classList.add("table-active");
+              selectedRow = tr;
+              pacienteId = parseInt(tr.dataset.codigo || "0");
+              setDisabled(btnEditar, false);
+              setDisabled(btnEliminar, false);
+            });
+          });
+
+          // Nuevo
+          btnNuevo?.addEventListener("click", () => {
+            $("#frmPaciente")?.reset();
+            setVal("Codigo", 0);
+            selectedRow?.classList.remove("table-active");
+            selectedRow = null;
+            pacienteId = 0;
+
+            // Reset preview y campos de imagen
+            if (preview){ preview.src="#"; preview.classList.add("d-none"); }
+            if (fileInput) fileInput.value = "";
+            if (txtRuta) txtRuta.value = "";
+
+            setDisabled(btnEditar, true);
+            setDisabled(btnEliminar, true);
+            openPacienteModal();
+            setTimeout(() => document.getElementById("Cedula")?.focus(), 150);
+          });
+
+          // Editar (carga también la imagen)
+          btnEditar?.addEventListener("click", () => {
+            if (!pacienteId) return;
+            const tr = selectedRow;
+            if (!tr) return;
+
+            setVal("Codigo", tr.dataset.codigo);
+            setVal("Cedula", tr.dataset.cedula);
+            setVal("Nombre", tr.dataset.nombre);
+            setVal("Apellido", tr.dataset.apellido);
+            setVal("Sexo", tr.dataset.sexo);
+            setVal("Edad", tr.dataset.edad);
+            setVal("Ocupacion", tr.dataset.ocupacion);
+            setVal("EstadoCivil", tr.dataset.estadocivil);
+            setVal("Domicilio", tr.dataset.domicilio);
+            setVal("Telefono", tr.dataset.telefono);
+            setVal("Estado", tr.dataset.estado);
+
+            // Imagen
+            setVal("ImagenPaciente", tr.dataset.imagenpaciente || "");
+            showPreviewFromUrl(tr.dataset.imagenpaciente || "");
+            if (fileInput) fileInput.value = "";
+
+            openPacienteModal();
+          });
+
+          // Guardar modal con validaciones
+          btnGuardarModal?.addEventListener("click", () => {
+            const carnet = document.getElementById("Cedula");
+            const edad = document.getElementById("Edad");
+            const validationModalEl = $("#validationModal");
+            const validationMessage = $("#validationMessage");
+
+            let showModal = (msg) => {
+              if (validationMessage) validationMessage.textContent = msg;
+              if (hasBS && validationModalEl) {
+                const vm = new bootstrap.Modal(validationModalEl);
+                vm.show();
+              } else {
+                alert(msg);
+              }
             };
 
-            // Filtro
-            const txtBuscar = $("#txtBuscarPacientes");
-            txtBuscar?.addEventListener('input', function () {
-                const q = this.value.toLowerCase().trim();
-                document.querySelectorAll("#tblPacientes tbody tr").forEach(tr => {
-                    const t = (tr.innerText || "").toLowerCase();
-                    tr.style.display = t.includes(q) ? "" : "none";
-                });
+            const carnetRegex = /^\d{4}[A-Za-z]{2}\d{3}$/;
+            if (!carnetRegex.test(carnet.value)) {
+              showModal("Carnet inválido. Formato: 4 números, 2 letras, 3 números, ejemplo 2024CV601");
+              carnet.focus();
+              return;
+            }
+
+            if  (parseInt(edad.value) < 17) {
+              showModal("La edad mínima es 17 años.");
+              edad.focus();
+              return;
+            }
+
+            document.getElementById("frmPaciente")?.submit();
+          });
+
+          // Eliminar (AJAX igual que tu lógica)
+          const btnConfirmDelete = $("#btnConfirmarEliminar");
+          const deleteModalEl = $("#deleteModal");
+
+          btnEliminar?.addEventListener("click", () => {
+            if (!pacienteId) return;
+            if (hasBS) new bootstrap.Modal(deleteModalEl).show();
+          });
+
+          btnConfirmDelete?.addEventListener("click", () => {
+            const hdn = $("#hdnEliminarCodigo");
+            if (!hdn) return;
+
+            hdn.value = pacienteId;
+
+            fetch($("#frmEliminar").action, {
+              method: "POST",
+              body: new FormData($("#frmEliminar"))
+            }).then(() => {
+              if (selectedRow) selectedRow.remove();
+              pacienteId = 0;
+              setDisabled(btnEditar, true);
+              setDisabled(btnEliminar, true);
+
+              const deleteModalInstance = bootstrap.Modal.getInstance(deleteModalEl);
+              if (deleteModalInstance) deleteModalInstance.hide();
             });
+          });
 
-            // Selección de fila
-            document.querySelectorAll("#tblPacientes tbody tr.row-paciente").forEach(tr => {
-                tr.addEventListener("click", () => {
-                    if (selectedRow) selectedRow.classList.remove("table-active");
-                    tr.classList.add("table-active");
-                    selectedRow = tr;
-                    pacienteId = parseInt(tr.dataset.codigo || "0");
-                    setDisabled(btnEditar, false);
-                    setDisabled(btnEliminar, false);
-                });
-            });
+          deleteModalEl?.addEventListener('hidden.bs.modal', () => {
+            pacienteId = 0;
+            setDisabled(btnEditar, true);
+            setDisabled(btnEliminar, true);
+          });
 
-            // Nuevo
-            btnNuevo?.addEventListener("click", () => {
-                $("#frmPaciente")?.reset();
-                setVal("Codigo", 0);
-                selectedRow?.classList.remove("table-active");
-                selectedRow = null;
-                pacienteId = 0;
-                setDisabled(btnEditar, true);
-                setDisabled(btnEliminar, true);
-                openPacienteModal();
-                setTimeout(() => document.getElementById("Cedula")?.focus(), 150);
-            });
-
-            // Editar
-            btnEditar?.addEventListener("click", () => {
-                if (!pacienteId) return;
-                const tr = selectedRow;
-                if (!tr) return;
-                setVal("Codigo", tr.dataset.codigo);
-                setVal("Cedula", tr.dataset.cedula);
-                setVal("Nombre", tr.dataset.nombre);
-                setVal("Apellido", tr.dataset.apellido);
-                setVal("Sexo", tr.dataset.sexo);
-                setVal("Edad", tr.dataset.edad);
-                setVal("Ocupacion", tr.dataset.ocupacion);
-                setVal("EstadoCivil", tr.dataset.estadocivil);
-                setVal("Domicilio", tr.dataset.domicilio);
-                setVal("Telefono", tr.dataset.telefono);
-                setVal("Estado", tr.dataset.estado);
-                openPacienteModal();
-            });
-
-            // Guardar modal con validaciones
-            btnGuardarModal?.addEventListener("click", () => {
-                const carnet = document.getElementById("Cedula");
-                const edad = document.getElementById("Edad");
-                const validationModalEl = $("#validationModal");
-                const validationMessage = $("#validationMessage");
-                let showModal = (msg) => {
-                    if (validationMessage) validationMessage.textContent = msg;
-                    if (hasBS && validationModalEl) {
-                        const vm = new bootstrap.Modal(validationModalEl);
-                        vm.show();
-                    }
-                };
-
-                const carnetRegex = /^\d{4}[A-Za-z]{2}\d{3}$/;
-                if (!carnetRegex.test(carnet.value)) {
-                    showModal("Carnet inválido. Formato: 4 números, 2 letras, 3 números, ejemplo 2024CV601");
-                    carnet.focus();
-                    return;
-                }
-
-                if  (parseInt(edad.value) < 17) {
-                    showModal("La edad mínima es 17 años.");
-                    edad.focus();
-                    return;
-                }
-
-                document.getElementById("frmPaciente")?.submit();
-            });
-
-            // Eliminar sin recargar página negra
-            const btnConfirmDelete = $("#btnConfirmarEliminar");
-            const deleteModalEl = $("#deleteModal");
-
-            btnEliminar?.addEventListener("click", () => {
-                if (!pacienteId) return;
-                if (hasBS) new bootstrap.Modal(deleteModalEl).show();
-            });
-
-            btnConfirmDelete?.addEventListener("click", () => {
-                const hdn = $("#hdnEliminarCodigo");
-                if (!hdn) return;
-
-                hdn.value = pacienteId;
-
-                fetch($("#frmEliminar").action, {
-                    method: "POST",
-                    body: new FormData($("#frmEliminar"))
-                }).then(() => {
-                    if (selectedRow) selectedRow.remove();
-                    pacienteId = 0;
-                    setDisabled(btnEditar, true);
-                    setDisabled(btnEliminar, true);
-
-                    // Cerramos correctamente el modal
-                    const deleteModalInstance = bootstrap.Modal.getInstance(deleteModalEl);
-                    if (deleteModalInstance) deleteModalInstance.hide();
-                });
-            });
-
-            // Aseguramos que el modal se pueda cerrar con la X o Cancelar
-            deleteModalEl?.addEventListener('hidden.bs.modal', () => {
-                pacienteId = 0;
-                setDisabled(btnEditar, true);
-                setDisabled(btnEliminar, true);
-            });
+          // Preview cuando cambian ruta o archivo
+          txtRuta?.addEventListener("change", () => showPreviewFromUrl(txtRuta.value));
+          fileInput?.addEventListener("change", () => {
+            const f = fileInput.files && fileInput.files[0];
+            if (!f) { showPreviewFromUrl(txtRuta?.value || ""); return; }
+            try {
+              const url = URL.createObjectURL(f);
+              if (preview) { preview.src = url; preview.classList.remove("d-none"); }
+            } catch {
+              if (preview) { preview.src="#"; preview.classList.add("d-none"); }
+            }
+          });
         });
     </script>
 }
+
 

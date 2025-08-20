@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_Clinica_Universitaria.Models;
 
@@ -23,7 +24,7 @@ namespace Proyecto_Clinica_Universitaria.Controllers
         public IActionResult Index(string usuario, string contrasena)
         {
 
-            if (usuario == "Pepe" && contrasena == "caca")
+            if (usuario == "Administrador" && contrasena == "clinica(503)")
             {
                 return RedirectToAction("HomePage");
             }
@@ -33,7 +34,10 @@ namespace Proyecto_Clinica_Universitaria.Controllers
             }
 
 
+
         }
+
+
 
         public IActionResult HomePage()
         {

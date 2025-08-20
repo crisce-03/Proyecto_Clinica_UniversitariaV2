@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\axele\\source\\repos\\Proyecto_Clinica_UniversitariaV2\\Proyecto_Clinica_Universitaria\\Proyecto_Clinica_Universitaria.csproj": {}
+    "C:\\Users\\ASUS\\source\\repos\\Proyecto_Clinica_universitaria\\Proyecto_Clinica_Universitaria\\Proyecto_Clinica_Universitaria.csproj": {}
   },
   "projects": {
-    "C:\\Users\\axele\\source\\repos\\Proyecto_Clinica_UniversitariaV2\\Proyecto_Clinica_Universitaria\\Proyecto_Clinica_Universitaria.csproj": {
+    "C:\\Users\\ASUS\\source\\repos\\Proyecto_Clinica_universitaria\\Proyecto_Clinica_Universitaria\\Proyecto_Clinica_Universitaria.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\axele\\source\\repos\\Proyecto_Clinica_UniversitariaV2\\Proyecto_Clinica_Universitaria\\Proyecto_Clinica_Universitaria.csproj",
+        "projectUniqueName": "C:\\Users\\ASUS\\source\\repos\\Proyecto_Clinica_universitaria\\Proyecto_Clinica_Universitaria\\Proyecto_Clinica_Universitaria.csproj",
         "projectName": "Proyecto_Clinica_Universitaria",
-        "projectPath": "C:\\Users\\axele\\source\\repos\\Proyecto_Clinica_UniversitariaV2\\Proyecto_Clinica_Universitaria\\Proyecto_Clinica_Universitaria.csproj",
-        "packagesPath": "C:\\Users\\axele\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\axele\\Source\\Repos\\Proyecto_Clinica_UniversitariaV2\\Proyecto_Clinica_Universitaria\\obj\\",
+        "projectPath": "C:\\Users\\ASUS\\source\\repos\\Proyecto_Clinica_universitaria\\Proyecto_Clinica_Universitaria\\Proyecto_Clinica_Universitaria.csproj",
+        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ASUS\\source\\repos\\Proyecto_Clinica_universitaria\\Proyecto_Clinica_Universitaria\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\axele\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -86,7 +86,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
