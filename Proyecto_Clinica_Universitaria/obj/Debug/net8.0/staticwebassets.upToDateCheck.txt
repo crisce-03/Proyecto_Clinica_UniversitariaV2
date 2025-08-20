@@ -4,6 +4,10 @@ wwwroot\css\medicosStyles.css
 wwwroot\css\site.css
 wwwroot\favicon.ico
 wwwroot\img\LOGO OFICIAL_UNICAES.png
+wwwroot\img\medico01.jpg
+wwwroot\img\unicaes3 (1).jpeg
+wwwroot\img\unicaes3.jpeg
+wwwroot\img\unicaes5.jpeg
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map

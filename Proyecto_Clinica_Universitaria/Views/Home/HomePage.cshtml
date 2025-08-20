@@ -1,8 +1,243 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "HomePage";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>HomePage</h1>
+<style>
+    :root {
+        --rojo: #a30000;
+        --gris: #f6f7f9;
+        --texto: #212529;
+    }
 
+    body {
+        background: #fff;
+        color: var(--texto);
+    }
+
+    .hero {
+        background: var(--rojo);
+        color: #fff;
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
+    }
+
+        .hero h1 {
+            font-weight: 700;
+        }
+
+    .section-title {
+        border-left: 6px solid var(--rojo);
+        padding-left: 12px;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .kard {
+        border: none;
+        border-radius: 14px;
+        background: var(--gris);
+        height: 100%;
+    }
+
+        .kard .card-body {
+            padding: 1.25rem 1.1rem;
+        }
+
+    .cta {
+        background: var(--rojo);
+        color: #fff;
+        border-radius: 12px;
+    }
+
+        .cta a {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+    .marca {
+        color: var(--rojo);
+        font-weight: 700;
+    }
+
+    .img-soft {
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    }
+
+    /* Carrusel en proporción 16:9 */
+    #imageCarousel .carousel-item {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 -> 9/16 = 0.5625 */
+    }
+
+        #imageCarousel .carousel-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* rellena sin deformar */
+            object-position: center; /* centra lo importante */
+        }
+
+            /* Ajuste especial solo para medico22.jpg */
+            #imageCarousel .carousel-item img[alt="Clínica Universitaria UNICAES 2"] {
+                object-position: top center; /* muestra más la parte de arriba */
+            }
+
+    /* Ajustes responsivos */
+    @@media (max-width: 992px) {
+        #imageCarousel .carousel-item {
+            padding-top: 56.25%; /* se mantiene 16:9 */
+        }
+    }
+
+    @@media (max-width: 576px) {
+        #imageCarousel .carousel-item {
+            padding-top: 56.25%; /* se mantiene 16:9 */
+        }
+    }
+</style>
+
+
+
+<div class="container py-4">
+
+    <!-- ENCABEZADO -->
+    <div class="hero d-flex flex-column flex-md-row align-items-center justify-content-between shadow-sm mb-4">
+        <div class="pe-md-4">
+            <h1 class="mt-1 mb-2">Clínica Universitaria</h1>
+            <p class="mb-0">Universidad Católica de El Salvador — <span class="fw-bold">UNICAES</span></p>
+        </div>
+        <div class="text-md-end mt-3 mt-md-0">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/UNICAES_Logo.png" alt="Logo UNICAES" style="max-height:96px;">
+        </div>
+    </div>
+
+    <!-- CARRUSEL -->
+    <div id="imageCarousel" class="carousel slide carousel-fade mb-5 text-center" data-bs-ride="carousel" data-bs-interval="2000">
+        <div class="carousel-inner img-soft">
+            <div class="carousel-item active">
+                <img src="~/img/unicaes3 (1).jpeg" alt="Clínica Universitaria UNICAES 1">
+            </div>
+            <div class="carousel-item">
+                <img src="~/img/medico01.jpg" alt="Clínica Universitaria UNICAES 2">
+            </div>
+            <div class="carousel-item">
+                <img src="~/img/medico33.jpg" alt="Clínica Universitaria UNICAES 3">
+            </div>
+            <div class="carousel-item">
+                <img src="~/img/unicaes5.jpeg" alt="Clínica Universitaria UNICAES 4">
+            </div>
+        </div>
+
+        <!-- Controles (opcionales) -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Siguiente</span>
+        </button>
+
+        <!-- Indicadores (opcionales) -->
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#imageCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="1"></button>
+            <button type="button" data-bs-target="#imageCarousel" data-bs-slide-to="1" aria-label="2"></button>
+            <button type="button" data-bs-target="#imageCarousel" data-bs-slide-to="2" aria-label="3"></button>
+            <button type="button" data-bs-target="#imageCarousel" data-bs-slide-to="3" aria-label="4"></button>
+        </div>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <h2 class="section-title">¿Quiénes somos?</h2>
+            <p>
+                La <strong>Clínica Universitaria de UNICAES</strong> brinda servicios de salud accesibles a estudiantes,
+                personal y comunidad. Integramos <span class="marca">ciencia</span> y <span class="marca">humanismo</span>
+                para una atención segura, oportuna y formativa para los futuros profesionales.
+            </p>
+            <ul>
+                <li>Atención preventiva, diagnóstica y de seguimiento.</li>
+                <li>Gestión de historias clínicas y continuidad del cuidado.</li>
+                <li>Docencia supervisada con altos estándares éticos.</li>
+            </ul>
+        </div>
+        <div class="col-lg-5">
+            <div class="kard card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="mb-3">Misión y Visión</h5>
+                    <p>
+                        <strong>Misión:</strong> Proveer atención integral centrada en la persona, promoviendo el bienestar
+                        y la formación académica con excelencia, calidez y compromiso social.
+                    </p>
+                    <p class="mb-0">
+                        <strong>Visión:</strong> Ser referente universitario en salud por su calidad humana, innovación
+                        y resultados en la comunidad.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">Servicios</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="kard card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-danger fw-bold mb-1">Consulta general</h6>
+                    <p class="mb-0">Evaluación clínica y control de signos de alarma.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="kard card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-danger fw-bold mb-1">Atención preventiva</h6>
+                    <p class="mb-0">Tamizajes, control de peso y educación en salud.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="kard card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-danger fw-bold mb-1">Consultas especializadas</h6>
+                    <p class="mb-0">Derivación y seguimiento en áreas específicas.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="kard card shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-danger fw-bold mb-1">Medicamentos básicos</h6>
+                    <p class="mb-0">Suministro de fármacos esenciales con receta.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">Contacto y Ubicación</h2>
+    <div class="kard card shadow-sm mb-4">
+        <div class="card-body">
+            <p>
+                <strong>Ubicación:</strong> Campus UNICAES, Santa Ana. <br>
+                Consulta en recepción por accesos y estacionamiento.
+            </p>
+            <p>
+                <strong>Teléfono:</strong> (+503) 2484-0668 <br>
+                <strong>Email:</strong> clinica@catolica.edu.sv
+            </p>
+            <hr>
+            <p class="mb-0 small text-muted">* Horarios: Lunes–Viernes 08:00–12:00 / 13:00–17:00 — Sábados 08:00–12:00</p>
+        </div>
+    </div>
+
+    <div class="text-center py-4">
+        <p class="mb-0"><em>“La Ciencia sin Moral es Vana”</em> — <span class="marca">Universidad Católica de El Salvador</span></p>
+    </div>
+
+</div>
