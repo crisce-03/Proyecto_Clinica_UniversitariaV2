@@ -37,7 +37,7 @@
             <table class="table table-hover align-middle" id="tblMed">
                 <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
-                        <th style="width:68px;">Foto</th>   <!-- como en Médicos -->
+                        <th style="width:68px;">Foto</th>
                         <th>ID</th>
                         <th>Medicamento</th>
                         <th>Descripción</th>
@@ -150,7 +150,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                <!-- enctype por si decides subir archivo real más adelante -->
                 <form class="mt-1" asp-action="GuardarOEditar" asp-controller="Medicamentos" method="post" id="frmMed" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <div class="mb-3">
@@ -170,12 +169,14 @@
 
                     <div class="mb-3">
                         <label for="Cantidad" class="form-label">Cantidad:</label>
-                        <input asp-for="Cantidad" id="Cantidad" type="number" class="form-control" min="0" required />
+                        <input asp-for="Cantidad" id="Cantidad" type="number" class="form-control"
+                               min="1" placeholder="Mínimo 1" required />
                     </div>
 
                     <div class="mb-3">
                         <label for="Vencimiento" class="form-label">Vencimiento:</label>
-                        <input asp-for="Vencimiento" id="Vencimiento" type="date" class="form-control" />
+                        <input asp-for="Vencimiento" id="Vencimiento" type="date" class="form-control"
+                               placeholder="Solo fechas futuras" />
                     </div>
 
                     <div class="mb-2">
@@ -200,6 +201,33 @@
     </div>
 </div>
 
+<!-- MODAL: Advertencia antes de guardar -->
+<div class="modal fade" id="modalAdvMed" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Revisa antes de guardar
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="mb-0">
+                    <li><strong>Cantidad</strong> debe ser <strong>&ge; 1</strong>.</li>
+                </ul>
+                <small class="text-muted d-block mt-2">
+                    Si el guardado falla, corrige los datos y vuelve a intentar.
+                </small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver a editar</button>
+                <button type="button" id="btnIntentarGuardarMed" class="btn btn-primary">Intentar guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
       const $ = s => document.querySelector(s);
@@ -210,7 +238,6 @@
       // Placeholder gris para la columna Foto
       const PH = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='9' fill='%236c757d'>Sin%20foto</text></svg>";
 
-      // Si en BD guardaste solo el nombre, resolvemos a /uploads/medicamentos/<archivo>
       function resolveImgPath(raw) {
         if (!raw) return "";
         const s = raw.trim();
@@ -221,10 +248,10 @@
 
       // Inicializa miniaturas (columna Foto)
       document.querySelectorAll('img.foto').forEach(img=>{
-         const raw = (img.dataset.src||"").trim();
-         const src = resolveImgPath(raw);
-         img.src = src || PH;
-         img.onerror = () => { img.onerror=null; img.src = PH; };
+        const raw = (img.dataset.src||"").trim();
+        const src = resolveImgPath(raw);
+        img.src = src || PH;
+        img.onerror = () => { img.onerror=null; img.src = PH; };
       });
 
       let selRow=null, selId=0, selThumb=null;
@@ -330,9 +357,78 @@
         setTimeout(() => document.getElementById("Medicamento")?.focus(), 150);
       });
 
-      // Guardar (desde el modal)
-      document.getElementById('btnGuardarModalMedicamento')?.addEventListener("click", () => {
-        document.getElementById("frmMed")?.submit();
+      // Establecer min (mañana) en el input date Vencimiento
+      (function setMinVencimiento(){
+        const d = new Date();
+        d.setDate(d.getDate() + 1); // mañana
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const dd = String(d.getDate()).padStart(2,'0');
+        const minStr = `${yyyy}-${mm}-${dd}`;
+        const v = document.getElementById('Vencimiento');
+        if (v) v.min = minStr;
+      })();
+
+      /* ============================
+         VALIDACIÓN SOLO-AL-FALLAR
+         ============================ */
+
+      function esFechaFutura(yyyy_mm_dd) {
+        if (!yyyy_mm_dd) return false;
+        const sel = new Date(yyyy_mm_dd + 'T00:00:00');
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+        return sel.getTime() >= manana.getTime(); // mañana o posterior
+      }
+
+      function setInvalid(id, invalid){
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (invalid) el.classList.add('is-invalid'); else el.classList.remove('is-invalid');
+      }
+
+      function validarOMostrarAdvertencia() {
+        const frm = document.getElementById('frmMed');
+        const cEl = document.getElementById('Cantidad');
+        const vEl = document.getElementById('Vencimiento');
+
+        const cant = cEl && cEl.value !== '' ? Number(cEl.value) : NaN;
+        const venc = vEl ? vEl.value : '';
+
+        const cantInvalida = !(cant >= 1);
+        const vencInvalido  = !esFechaFutura(venc);
+
+        setInvalid('Cantidad', cantInvalida);
+        setInvalid('Vencimiento', vencInvalido);
+
+        if (cantInvalida || vencInvalido) {
+          if (hasBS && document.getElementById('modalAdvMed')) {
+            new bootstrap.Modal(document.getElementById('modalAdvMed')).show();
+          } else {
+            alert("Hay datos inválidos:\n- Cantidad debe ser ≥ 1\n- Vencimiento debe ser una fecha futura");
+          }
+          return false; // NO enviar
+        }
+
+        frm?.submit(); // Todo ok
+        return true;
+      }
+
+      // Guardar (desde el modal): valida y solo muestra alerta si hay errores
+      document.getElementById('btnGuardarModalMedicamento')?.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        validarOMostrarAdvertencia();
+      });
+
+      // Botón del modal de advertencia: reintenta (revalida)
+      document.getElementById('btnIntentarGuardarMed')?.addEventListener('click', function () {
+        validarOMostrarAdvertencia();
+      });
+
+      // Defensa extra: si se dispara submit directo
+      document.getElementById('frmMed')?.addEventListener('submit', function (ev) {
+        const ok = validarOMostrarAdvertencia();
+        if (!ok) ev.preventDefault();
       });
 
       // Eliminar → confirm

@@ -37,7 +37,7 @@
                 <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
                         <th style="width:68px;">Foto</th> <!-- NUEVA COLUMNA -->
-                        <th>Cédula</th>
+                        <th>DUI</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>Especialidad</th>
@@ -174,8 +174,8 @@
                             <input asp-for="Codigo" id="Codigo" class="form-control" readonly value="@(Model?.Codigo ?? 0)" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Cédula</label>
-                            <input asp-for="Cedula" id="Cedula" class="form-control" />
+                            <label class="form-label">DUI</label>
+                            <input asp-for="Cedula" id="Cedula" class="form-control" placeholder="9 DIGITOS" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Nombre</label>
@@ -195,16 +195,16 @@
                                                                                                         nameof(MedicosEspecialidadModel.Especialidad),
                                                                                                         Model?.EspecialidadCodigo))"
                                     class="form-select">
-                                <option value="">Seleccione...</option>
+                                <option value="0">Seleccione...</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Teléfono</label>
-                            <input asp-for="Telefono" id="Telefono" class="form-control" />
+                            <input asp-for="Telefono" id="Telefono" class="form-control" placeholder="####-####" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Correo</label>
-                            <input asp-for="Correo" id="Correo" class="form-control" />
+                            <input asp-for="Correo" id="Correo" class="form-control" placeholder="&#64"/>
                         </div>
 
                         <div class="col-md-3">
@@ -250,157 +250,232 @@
     </div>
 </div>
 
+<!-- MODAL: Advertencia genérica antes de guardar -->
+<div class="modal fade" id="modalAdvertencia" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-warning">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Verifica los datos antes de guardar
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>Si no se puede guardar, revisa que:</p>
+        <ul class="mb-0">
+          <li>El <strong>DUI</strong> tenga <strong>9 dígitos</strong> (solo números).</li>
+          <li>El <strong>Teléfono</strong> tenga <strong>8 dígitos con guion</strong> (formato <code>####-####</code>).</li>
+          <li>El <strong>Correo</strong> contenga <strong>&#64;</strong> (ej. <code>usuario@gmail.com</code>).</li>
+        </ul>
+        <small class="text-muted d-block mt-2">
+          Nota: si tu sistema sigue sin permitir guardar, corrige los campos y vuelve a intentar.
+        </small>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver a editar</button>
+        <button type="button" id="btnIntentarGuardar" class="btn btn-primary">Intentar guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const $ = (sel) => document.querySelector(sel);
-      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
-      const setDisabled = (el, v) => { if (el) el.disabled = !!v; };
-      const hasBS = !!(window.bootstrap && bootstrap.Modal);
+  document.addEventListener('DOMContentLoaded', function () {
+    const $ = (sel) => document.querySelector(sel);
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
+    const setDisabled = (el, v) => { if (el) el.disabled = !!v; };
+    const hasBS = !!(window.bootstrap && bootstrap.Modal);
 
-      // Placeholder SVG gris para la columna Foto
-      const PH = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='9' fill='%236c757d'>Sin%20foto</text></svg>";
+ 
+    const AT = String.fromCharCode(64);
 
-      // Inicializa miniaturas de la tabla (columna Foto)
-      document.querySelectorAll('img.foto').forEach(img=>{
-         const s = (img.dataset.src||"").trim();
-         img.src = s || PH;
-         img.onerror = () => { img.onerror=null; img.src = PH; };
-      });
+    // Placeholder SVG gris para la columna Foto
+    const PH = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='100%25' height='100%25' fill='%23e9ecef'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='9' fill='%236c757d'>Sin%20foto</text></svg>";
 
-      let selectedRow = null;
-      let selectedId = 0;
+    // Inicializa miniaturas de la tabla (columna Foto)
+    document.querySelectorAll('img.foto').forEach(img=>{
+      const s = (img.dataset.src||"").trim();
+      img.src = s || PH;
+      img.onerror = () => { img.onerror=null; img.src = PH; };
+    });
 
-      const btnNuevo = $("#btnNuevo");
-      const btnEditar = $("#btnEditar");
-      const btnEliminar = $("#btnEliminar");
-      const btnGuardar = $("#btnGuardar");
-      const btnConfirmarEliminar = $("#btnConfirmarEliminar");
-      const confirmText = $("#confirmDeleteText");
-      const modalConfirmEl = document.getElementById('confirmDeleteModal');
+    let selectedRow = null;
+    let selectedId = 0;
 
-      const modalMedicoEl = document.getElementById('modalMedico');
-      let modalMedico = null;
-      const openMedicoModal = () => {
-        if (!hasBS) { alert("Falta Bootstrap JS (bootstrap.bundle.min.js) en _Layout."); return; }
-        if (!modalMedico) modalMedico = new bootstrap.Modal(modalMedicoEl);
-        modalMedico.show();
-      };
+    const btnNuevo = $("#btnNuevo");
+    const btnEditar = $("#btnEditar");
+    const btnEliminar = $("#btnEliminar");
+    const btnGuardar = $("#btnGuardar");
+    const btnConfirmarEliminar = $("#btnConfirmarEliminar");
+    const confirmText = $("#confirmDeleteText");
+    const modalConfirmEl = document.getElementById('confirmDeleteModal');
 
-      // Filtro
-      const txtBuscar = document.getElementById('txtBuscarMedicos');
-      txtBuscar?.addEventListener('input', function(){
-        const q = this.value.toLowerCase().trim();
-        document.querySelectorAll("#tblMedicos tbody tr").forEach(tr=>{
-          const t = (tr.innerText||"").toLowerCase();
-          tr.style.display = t.includes(q) ? "" : "none";
-        });
-      });
+    const modalMedicoEl = document.getElementById('modalMedico');
+    let modalMedico = null;
+    const openMedicoModal = () => {
+      if (!hasBS) { alert("Falta Bootstrap JS (bootstrap.bundle.min.js) en _Layout."); return; }
+      if (!modalMedico) modalMedico = new bootstrap.Modal(modalMedicoEl);
+      modalMedico.show();
+    };
 
-      // Helpers preview
-      const preview = $("#previewMedico");
-      const txtRuta = $("#ImagenMedico");
-      const fileInput = $("#fileImagenMedico");
-      const showPreviewFromUrl = (url) => {
-        if (!preview) return;
-        const v = (url || "").trim();
-        if (!v) { preview.src="#"; preview.classList.add("d-none"); return; }
-        preview.src = v;
-        preview.onload = () => preview.classList.remove("d-none");
-        preview.onerror = () => { preview.src="#"; preview.classList.add("d-none"); };
-      };
-
-      // Selección de fila
-      document.querySelectorAll("#tblMedicos tbody tr.row-medico").forEach(tr => {
-        tr.addEventListener("click", () => {
-          if (selectedRow) selectedRow.classList.remove("table-active");
-          tr.classList.add("table-active");
-          selectedRow = tr;
-          selectedId = parseInt(tr.dataset.codigo || "0");
-
-          setVal("Codigo", tr.dataset.codigo);
-          setVal("Cedula", tr.dataset.cedula);
-          setVal("Nombre", tr.dataset.nombre);
-          setVal("Apellido", tr.dataset.apellido);
-          setVal("EspecialidadCodigo", tr.dataset.especialidad);
-          setVal("Telefono", tr.dataset.telefono);
-          setVal("Correo", tr.dataset.correo);
-          setVal("Usuario", tr.dataset.usuario);
-          setVal("Contrasena", tr.dataset.contrasena);
-          setVal("Estado", tr.dataset.estado);
-          setVal("ImagenMedico", tr.dataset.imagenmedico || "");
-
-          showPreviewFromUrl(tr.dataset.imagenmedico || "");
-
-          setDisabled(btnEditar, false);
-          setDisabled(btnEliminar, false);
-          setDisabled(btnGuardar, false);
-        });
-      });
-
-      // Nuevo
-      btnNuevo?.addEventListener("click", () => {
-        const form = document.getElementById("frmMedico");
-        form?.reset();
-        setVal("Codigo", 0);
-        if (selectedRow) selectedRow.classList.remove("table-active");
-        selectedRow = null;
-        selectedId = 0;
-        if (preview){ preview.src="#"; preview.classList.add("d-none"); }
-        if (fileInput) fileInput.value = "";
-        setDisabled(btnEditar, true);
-        setDisabled(btnEliminar, true);
-        setDisabled(btnGuardar, false);
-        openMedicoModal();
-        setTimeout(() => document.getElementById("Cedula")?.focus(), 150);
-      });
-
-      // Editar
-      btnEditar?.addEventListener("click", () => {
-        if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
-        openMedicoModal();
-        setTimeout(() => document.getElementById("Nombre")?.focus(), 150);
-      });
-
-      // Guardar (modal)
-      document.getElementById('btnGuardarModalMedico')?.addEventListener("click", () => {
-        document.getElementById("frmMedico")?.submit();
-      });
-
-      // Eliminar -> confirm
-      btnEliminar?.addEventListener("click", () => {
-        if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
-        document.getElementById("hdnEliminarCodigo").value = selectedId;
-        const texto = `¿Eliminar al médico ${selectedRow?.dataset?.nombre ?? ''} ${selectedRow?.dataset?.apellido ?? ''} (Cédula: ${selectedRow?.dataset?.cedula ?? ''})?`;
-        if (confirmText) confirmText.textContent = texto;
-
-        if (hasBS) new bootstrap.Modal(modalConfirmEl).show();
-        else if (confirm(texto)) document.getElementById("frmEliminar").submit();
-      });
-
-      // Confirmar eliminación
-      btnConfirmarEliminar?.addEventListener("click", () => {
-        document.getElementById("frmEliminar").submit();
-      });
-
-      // Habilitar Guardar si cambian campos del form del modal
-      document.addEventListener("input", (ev) => {
-        if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, false);
-      });
-      document.addEventListener("change", (ev) => {
-        if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, false);
-      });
-
-      // Preview cuando cambian ruta o archivo
-      txtRuta?.addEventListener("change", () => showPreviewFromUrl(txtRuta.value));
-      fileInput?.addEventListener("change", () => {
-        const f = fileInput.files && fileInput.files[0];
-        if (!f) { showPreviewFromUrl(txtRuta?.value || ""); return; }
-        try {
-          const url = URL.createObjectURL(f);
-          if (preview) { preview.src = url; preview.classList.remove("d-none"); }
-        } catch {
-          if (preview) { preview.src="#"; preview.classList.add("d-none"); }
-        }
+    // Filtro
+    const txtBuscar = document.getElementById('txtBuscarMedicos');
+    txtBuscar?.addEventListener('input', function(){
+      const q = this.value.toLowerCase().trim();
+      document.querySelectorAll("#tblMedicos tbody tr").forEach(tr=>{
+        const t = (tr.innerText||"").toLowerCase();
+        tr.style.display = t.includes(q) ? "" : "none";
       });
     });
+
+    // Helpers preview
+    const preview = $("#previewMedico");
+    const txtRuta = $("#ImagenMedico");
+    const fileInput = $("#fileImagenMedico");
+    const showPreviewFromUrl = (url) => {
+      if (!preview) return;
+      const v = (url || "").trim();
+      if (!v) { preview.src="#"; preview.classList.add("d-none"); return; }
+      preview.src = v;
+      preview.onload = () => preview.classList.remove("d-none");
+      preview.onerror = () => { preview.src="#"; preview.classList.add("d-none"); };
+    };
+
+    // Selección de fila
+    document.querySelectorAll("#tblMedicos tbody tr.row-medico").forEach(tr => {
+      tr.addEventListener("click", () => {
+        if (selectedRow) selectedRow.classList.remove("table-active");
+        tr.classList.add("table-active");
+        selectedRow = tr;
+        selectedId = parseInt(tr.dataset.codigo || "0");
+
+        setVal("Codigo", tr.dataset.codigo);
+        setVal("Cedula", tr.dataset.cedula);
+        setVal("Nombre", tr.dataset.nombre);
+        setVal("Apellido", tr.dataset.apellido);
+        setVal("EspecialidadCodigo", tr.dataset.especialidad);
+        setVal("Telefono", tr.dataset.telefono);
+        setVal("Correo", tr.dataset.correo);
+        setVal("Usuario", tr.dataset.usuario);
+        setVal("Contrasena", tr.dataset.contrasena);
+        setVal("Estado", tr.dataset.estado);
+        setVal("ImagenMedico", tr.dataset.imagenmedico || "");
+
+        showPreviewFromUrl(tr.dataset.imagenmedico || "");
+
+        setDisabled(btnEditar, false);
+        setDisabled(btnEliminar, false);
+        setDisabled(btnGuardar, false);
+      });
+    });
+
+    // Nuevo
+    btnNuevo?.addEventListener("click", () => {
+      const form = document.getElementById("frmMedico");
+      form?.reset();
+      setVal("Codigo", 0);
+      if (selectedRow) selectedRow.classList.remove("table-active");
+      selectedRow = null;
+      selectedId = 0;
+      if (preview){ preview.src="#"; preview.classList.add("d-none"); }
+      if (fileInput) fileInput.value = "";
+      setDisabled(btnEditar, true);
+      setDisabled(btnEliminar, true);
+      setDisabled(btnGuardar, false);
+      openMedicoModal();
+      setTimeout(() => document.getElementById("Cedula")?.focus(), 150);
+    });
+
+    // Editar
+    btnEditar?.addEventListener("click", () => {
+      if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
+      openMedicoModal();
+      setTimeout(() => document.getElementById("Nombre")?.focus(), 150);
+    });
+
+    // ==========================
+    // Guardar (modal) -> VALIDA antes de decidir si muestra advertencia o envía
+    // ==========================
+    document.getElementById('btnGuardarModalMedico')?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+
+      const duiEl = document.getElementById("Cedula");
+      const telEl = document.getElementById("Telefono");
+      const correoEl = document.getElementById("Correo");
+
+      const dui = duiEl?.value.trim() || "";
+      const tel = telEl?.value.trim() || "";
+      const correo = correoEl?.value.trim() || "";
+
+      const duiValido = /^\d{9}$/.test(dui);                 // 9 dígitos
+      const telValido = /^\d{4}-\d{4}$/.test(tel);           // ####-####
+
+      
+      const correoRegex = new RegExp(`^[^\\s${AT}]+${AT}[^\\s${AT}]+\\.[^\\s${AT}]+$`);
+      const correoValido = correoRegex.test(correo);
+
+      // (Opcional) marcar visualmente inválidos
+      [ [duiEl, duiValido], [telEl, telValido], [correoEl, correoValido] ].forEach(([el, ok])=>{
+        if (!el) return;
+        el.classList.toggle("is-invalid", !ok);
+        el.classList.toggle("is-valid", ok);
+      });
+
+      if (duiValido && telValido && correoValido) {
+        // ✅ Datos correctos → enviar directamente el form
+        document.getElementById("frmMedico")?.submit();
+      } else {
+        // ❌ Hay errores → mostrar advertencia
+        if (hasBS) new bootstrap.Modal(document.getElementById('modalAdvertencia')).show();
+        else alert("Verifica: DUI 9 dígitos, Teléfono ####-####, Correo válido con " + AT);
+      }
+    });
+
+    // Eliminar -> confirm
+    btnEliminar?.addEventListener("click", () => {
+      if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
+      document.getElementById("hdnEliminarCodigo").value = selectedId;
+      const texto = `¿Eliminar al médico ${selectedRow?.dataset?.nombre ?? ''} ${selectedRow?.dataset?.apellido ?? ''} (DUI: ${selectedRow?.dataset?.cedula ?? ''})?`;
+      if (confirmText) confirmText.textContent = texto;
+
+      if (hasBS) new bootstrap.Modal(modalConfirmEl).show();
+      else if (confirm(texto)) document.getElementById("frmEliminar").submit();
+    });
+
+    // Confirmar eliminación
+    btnConfirmarEliminar?.addEventListener("click", () => {
+      document.getElementById("frmEliminar").submit();
+    });
+
+    // Habilitar Guardar si cambian campos del form del modal
+    document.addEventListener("input", (ev) => {
+      if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, false);
+    });
+    document.addEventListener("change", (ev) => {
+      if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, false);
+    });
+
+    // Preview cuando cambian ruta o archivo
+    txtRuta?.addEventListener("change", () => showPreviewFromUrl(txtRuta.value));
+    fileInput?.addEventListener("change", () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) { showPreviewFromUrl(txtRuta?.value || ""); return; }
+      try {
+        const url = URL.createObjectURL(f);
+        if (preview) { preview.src = url; preview.classList.remove("d-none"); }
+      } catch {
+        if (preview) { preview.src="#"; preview.classList.add("d-none"); }
+      }
+    });
+
+    // ---- Script para enviar tras confirmar en la advertencia ----
+    document.getElementById('btnIntentarGuardar')?.addEventListener('click', function () {
+      // Normalizaciones opcionales:
+      // var dui = document.getElementById('Cedula'); if (dui) dui.value = (dui.value||'').replace(/\D/g,'');
+      // var tel = document.getElementById('Telefono'); if (tel) tel.value = (tel.value||'').replace(/\D/g,''); // si tu BD guarda solo dígitos
+      document.getElementById("frmMedico")?.submit();
+    });
+
+  });
 </script>
