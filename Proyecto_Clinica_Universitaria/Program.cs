@@ -7,6 +7,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<Proyecto_Clinica_Universitaria.Datos.ConsultasDatos>();
 builder.Services.AddScoped<Proyecto_Clinica_Universitaria.Datos.PacienteDatos>();
 builder.Services.AddScoped<Proyecto_Clinica_Universitaria.Datos.MedicoDatos>();
+builder.Services.AddScoped<Proyecto_Clinica_Universitaria.Datos.MedicamentosDatos>();
 builder.Services.AddSingleton<Proyecto_Clinica_Universitaria.Servicios.AzureBlobService>();
 
 

@@ -12,17 +12,20 @@ namespace Proyecto_Clinica_Universitaria.Controllers
         private readonly ConsultasDatos _consultasDatos;
         private readonly PacienteDatos _pacienteDatos;
         private readonly MedicoDatos _medicoDatos;
+        private readonly MedicamentosDatos _medicamentosDatos;
 
         public ConsultasController(
             ILogger<ConsultasController> logger,
             ConsultasDatos consultasDatos,
             PacienteDatos pacienteDatos,
-            MedicoDatos medicoDatos)
+            MedicoDatos medicoDatos,
+            MedicamentosDatos medicamentosDatos)
         {
             _logger = logger;
             _consultasDatos = consultasDatos;
             _pacienteDatos = pacienteDatos;
             _medicoDatos = medicoDatos;
+            _medicamentosDatos = medicamentosDatos;
         }
 
         // Vista que muestra listado de consultas (historial)
@@ -37,6 +40,7 @@ namespace Proyecto_Clinica_Universitaria.Controllers
         {
             ViewBag.ListaPacientes = _pacienteDatos.ListarNombres();
             ViewBag.ListaMedicos = _medicoDatos.ListarNombres();
+            ViewBag.ListaMedicamentos = _medicamentosDatos.ListarNombres();
 
             if (id == null)
             {
@@ -61,6 +65,7 @@ namespace Proyecto_Clinica_Universitaria.Controllers
             {
                 ViewBag.ListaPacientes = _pacienteDatos.ListarNombres();
                 ViewBag.ListaMedicos = _medicoDatos.ListarNombres();
+                ViewBag.ListaMedicamentos = _medicamentosDatos.ListarNombres();
                 return View("Index", consulta);
             }
 
@@ -83,6 +88,7 @@ namespace Proyecto_Clinica_Universitaria.Controllers
                 ModelState.AddModelError("", "Ocurrió un error al guardar la consulta.");
                 ViewBag.ListaPacientes = _pacienteDatos.ListarNombres();
                 ViewBag.ListaMedicos = _medicoDatos.ListarNombres();
+                ViewBag.ListaMedicamentos = _medicamentosDatos.ListarNombres();
                 return View("Index", consulta);
             }
 

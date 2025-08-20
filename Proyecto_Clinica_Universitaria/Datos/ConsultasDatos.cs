@@ -18,9 +18,10 @@ namespace Proyecto_Clinica_Universitaria.Datos
 
                 var sql = @"
             SELECT c.Codigo, c.Fecha, c.Cedula, c.Nombre, c.Apellido, c.Temperatura, c.Pulso, c.Peso, 
-                   c.Presion, c.SwatO2, m.Nombre AS MedicoNombre
+                   c.Presion, c.SwatO2, m.Nombre AS MedicoNombre, med.Medicamento AS MedicamentoNombre
             FROM Consulta c
             INNER JOIN Medico m ON c.Medico = m.Codigo
+            INNER JOIN Medicamentos med ON c.Medicamento = med.Codigo
             ORDER BY c.Fecha DESC";
 
                 SqlCommand cmd = new SqlCommand(sql, conexion);
@@ -41,7 +42,8 @@ namespace Proyecto_Clinica_Universitaria.Datos
                             Peso = dr["Peso"].ToString(),
                             Presion = dr["Presion"].ToString(),
                             SwatO2 = dr["SwatO2"].ToString(),
-                            MedicoNombre = dr["MedicoNombre"].ToString()
+                            MedicoNombre = dr["MedicoNombre"].ToString(),
+                            MedicamentoNombre = dr["MedicamentoNombre"].ToString()
                         });
                     }
                 }
@@ -61,7 +63,7 @@ namespace Proyecto_Clinica_Universitaria.Datos
 
                 var sql = @"
                     SELECT Codigo, Paciente, Cedula, Nombre, Apellido, Fecha, Temperatura, Pulso, Peso, Presion, SwatO2,
-                           Recordatorio, Evolucion, Prescripcion, Medico
+                           Recordatorio, Evolucion, Prescripcion, Medico, Medicamento
                     FROM Consulta
                     WHERE Codigo = @Codigo";
 
@@ -88,7 +90,8 @@ namespace Proyecto_Clinica_Universitaria.Datos
                             Recordatorio = dr["Recordatorio"] == DBNull.Value ? null : dr["Recordatorio"].ToString(),
                             Evolucion = dr["Evolucion"] == DBNull.Value ? null : dr["Evolucion"].ToString(),
                             Prescripcion = dr["Prescripcion"] == DBNull.Value ? null : dr["Prescripcion"].ToString(),
-                            Medico = Convert.ToInt32(dr["Medico"])
+                            Medico = Convert.ToInt32(dr["Medico"]),
+                            Medicamento = Convert.ToInt32(dr["Medicamento"])
                         };
                     }
                 }
@@ -123,6 +126,7 @@ namespace Proyecto_Clinica_Universitaria.Datos
                         cmd.Parameters.AddWithValue("@Evolucion", consultas.Evolucion ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Prescripcion", consultas.Prescripcion ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Medico", consultas.Medico);
+                        cmd.Parameters.AddWithValue("@Medicamento", consultas.Medicamento);
 
                         int filasAfectadas = cmd.ExecuteNonQuery();
                         return filasAfectadas > 0;
@@ -164,6 +168,7 @@ namespace Proyecto_Clinica_Universitaria.Datos
                         cmd.Parameters.AddWithValue("@Evolucion", consultas.Evolucion ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Prescripcion", consultas.Prescripcion ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Medico", consultas.Medico);
+                        cmd.Parameters.AddWithValue("@Medicamento", consultas.Medicamento);
 
                         int filasAfectadas = cmd.ExecuteNonQuery();
                         return filasAfectadas > 0;

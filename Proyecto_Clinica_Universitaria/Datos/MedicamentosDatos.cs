@@ -129,5 +129,33 @@ namespace Proyecto_Clinica_Universitaria.Datos
             }
             return true;
         }
+
+        public List<MedicamentoModel> ListarNombres()
+        {
+            var lista = new List<MedicamentoModel>();
+            var cn = new Conexion();
+
+            using (var conexion = new SqlConnection(cn.getCadenaSQL()))
+            {
+                conexion.Open();
+                // En tu BD la tabla es "Medico" (singular)
+                using (SqlCommand cmd = new SqlCommand("SELECT Codigo, Medicamento FROM Medicamentos", conexion))
+                {
+                    using (var dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            lista.Add(new MedicamentoModel
+                            {
+                                Codigo = dr.GetInt32(0),
+                                Medicamento = dr.GetString(1)
+                            });
+                        }
+                    }
+                }
+            }
+
+            return lista;
+        }
     }
 }

@@ -109,6 +109,27 @@
                                 }
                             </select>
                         </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Medicamento" class="form-label"></label>
+                            <select asp-for="Medicamento" class="form-select">
+                                <option value="">-- Selecciona un medicamento --</option>
+                                @if (ViewBag.ListaMedicamentos != null)
+                                {
+                                    foreach (var medicamento in ViewBag.ListaMedicamentos)
+                                    {
+                                        if (medicamento.Codigo == Model.Medicamento)
+                                        {
+                                            <option value="@medicamento.Codigo" selected="selected">@medicamento.Medicamento</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@medicamento.Codigo">@medicamento.Medicamento</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
                     </div>
 
                     <div class="row mb-3">
@@ -162,7 +183,6 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const selPaciente = document.querySelector("select[name='Paciente']");
-            const txtCodigo   = document.querySelector("input[name='Codigo']");
             const txtCedula   = document.querySelector("input[name='Cedula']");
             const txtNombre   = document.querySelector("input[name='Nombre']");
             const txtApellido = document.querySelector("input[name='Apellido']");
@@ -170,7 +190,6 @@
             const endpoint = '@Url.Action("ObtenerPaciente", "Paciente")'; // ✔ ruta correcta (singular)
 
             function limpiar() {
-                txtCodigo.value = "";
                 txtCedula.value = "";
                 txtNombre.value = "";
                 txtApellido.value = "";
@@ -183,7 +202,6 @@
                     .then(d => {
                         if (!d) { limpiar(); return; }
                         // Si tu JSON sale con PascalCase, cambia a d.Cedula/d.Nombre/d.Apellido
-                        txtCodigo.value = d.codigo ?? "";
                         txtCedula.value  = d.cedula  ?? "";
                         txtNombre.value  = d.nombre  ?? "";
                         txtApellido.value = d.apellido ?? "";

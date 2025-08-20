@@ -19,5 +19,6 @@ namespace Proyecto_Clinica_Universitaria.Models
         public string? Evolucion { get; set; }
         public string? Prescripcion { get; set; }
         public int Medico { get; set; }
+        public int Medicamento { get; set; }
     }
 }

@@ -13,5 +13,6 @@
         public string? Presion { get; set; }
         public string? SwatO2 { get; set; }
         public string? MedicoNombre { get; set; }
+        public string? MedicamentoNombre { get; set; }
     }
 }

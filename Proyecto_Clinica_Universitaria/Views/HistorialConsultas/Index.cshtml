@@ -67,6 +67,7 @@
                         <th>Presión</th>
                         <th>SWAT O2</th>
                         <th>Médico</th>
+                        <th>Medicamento</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,13 +86,14 @@
                                 <td>@consulta.Presion</td>
                                 <td>@consulta.SwatO2</td>
                                 <td>@consulta.MedicoNombre</td>
+                                <td>@consulta.MedicamentoNombre</td>
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="10" class="text-center">No hay consultas registradas.</td>
+                            <td colspan="11" class="text-center">No hay consultas registradas.</td>
                         </tr>
                     }
                 </tbody>

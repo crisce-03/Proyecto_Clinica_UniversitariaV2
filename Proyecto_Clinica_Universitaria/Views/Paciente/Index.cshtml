@@ -5,88 +5,33 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid p-4">
-    <div class="d-flex justify-content-center gap-2 flex-wrap w-50 ms-auto mb-4">
-        <button class="btn btn-dark d-flex align-items-center justify-content-center gap-2 px-3 flex-grow-1" style="min-width: 140px;">
-            <i class="bi bi-printer"></i>
-            <span class="d-none d-md-inline">IMPRIMIR</span>
-        </button>
-        <button class="btn btn-dark d-flex align-items-center justify-content-center gap-2 px-3 flex-grow-1" style="min-width: 140px;">
-            <i class="bi bi-file-earmark-excel"></i>
-            <span class="d-none d-md-inline">EXCEL</span>
-        </button>
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<main class="p-3">
+
+    <!-- Buscador y contador -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="input-group" style="max-width: 300px;">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="txtBuscarPacientes" class="form-control" placeholder="Buscar..." />
+        </div>
+        <div class="text-end">
+            <span class="badge bg-warning text-dark p-2">
+                <i class="bi bi-person"></i> Paciente(s)
+            </span>
+        </div>
     </div>
 
-    <form class="row g-3 mb-4" method="post" asp-action="Guardar">
-        @Html.AntiForgeryToken()
-
-        <div class="col-md-1">
-            <label class="form-label">Código</label>
-            <input type="hidden" asp-for="NuevoPaciente.Codigo" />
-            <input type="text" class="form-control" id="displayCodigo" readonly />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Cédula</label>
-            <input type="text" class="form-control" asp-for="NuevoPaciente.Cedula" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Sexo</label>
-            <select class="form-select" asp-for="NuevoPaciente.Sexo">
-                <option>Femenino</option>
-                <option>Masculino</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label">Nombre</label>
-            <input type="text" class="form-control" asp-for="NuevoPaciente.Nombre" />
-        </div>
-        <div class="col-md-3">
-            <label class="form-label">Apellido</label>
-            <input type="text" class="form-control" asp-for="NuevoPaciente.Apellido" />
-        </div>
-        <div class="col-md-1">
-            <label class="form-label">Edad</label>
-            <input type="number" class="form-control" asp-for="NuevoPaciente.Edad" />
-        </div>
-        <div class="col-md-3">
-            <label class="form-label">Ocupación</label>
-            <input type="text" class="form-control" asp-for="NuevoPaciente.Ocupacion" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Estado Civil</label>
-            <select class="form-select" asp-for="NuevoPaciente.EstadoCivil">
-                <option>Casado/a</option>
-                <option>Soltero/a</option>
-            </select>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Domicilio</label>
-            <input type="text" class="form-control" asp-for="NuevoPaciente.Domicilio" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Teléfono</label>
-            <input type="text" class="form-control" asp-for="NuevoPaciente.Telefono" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Estado</label>
-            <select class="form-select" asp-for="NuevoPaciente.Estado">
-                <option>Activo</option>
-                <option>Pasivo</option>
-            </select>
-        </div>
-
-        <div class="col-12 mt-3">
-            <button type="submit" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;">
-                <i class="bi bi-save"></i>
-                <span class="d-none d-md-inline">Guardar</span>
-            </button>
-        </div>
-    </form>
-
-    <h5 class="mb-3">Lista de Pacientes</h5>
-    <div class="table-responsive card-box">
-        <table class="table table-striped table-hover" id="pacientesTable">
-            <thead class="table-dark">
+    <!-- Tabla de pacientes -->
+    <div class="table-responsive" style="max-height:70vh; overflow-y:auto;">
+        <table class="table table-hover align-middle" id="tblPacientes">
+            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                 <tr>
                     <th>Código</th>
                     <th>Cédula</th>
@@ -104,7 +49,18 @@
             <tbody>
                 @foreach (var paciente in Model.ListaPacientes)
                 {
-                    <tr data-id="@paciente.Codigo">
+                    <tr class="row-paciente"
+                        data-codigo="@paciente.Codigo"
+                        data-cedula="@paciente.Cedula"
+                        data-nombre="@paciente.Nombre"
+                        data-apellido="@paciente.Apellido"
+                        data-sexo="@paciente.Sexo"
+                        data-edad="@paciente.Edad"
+                        data-ocupacion="@paciente.Ocupacion"
+                        data-estadocivil="@paciente.EstadoCivil"
+                        data-domicilio="@paciente.Domicilio"
+                        data-telefono="@paciente.Telefono"
+                        data-estado="@paciente.Estado">
                         <td>@paciente.Codigo</td>
                         <td>@paciente.Cedula</td>
                         <td>@paciente.Nombre</td>
@@ -122,37 +78,148 @@
         </table>
     </div>
 
-    <section class="d-flex justify-content-center gap-3 mt-4 p-3 bg-white rounded">
-        <button id="btnEditar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2" style="background-color:#880C09;" disabled>
+    <!-- BARRA DE ACCIONES -->
+    <section class="d-flex flex-wrap justify-content-center gap-3 mt-4 p-3 bg-white rounded">
+        <button type="button" id="btnNuevo" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;">
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-md-inline">Nuevo</span>
+        </button>
+        <button type="button" id="btnEditar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;" disabled>
             <i class="bi bi-pencil-square"></i>
             <span class="d-none d-md-inline">Editar</span>
         </button>
-        <button id="btnEliminar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2" style="background-color:#880C09;" disabled>
+        <button type="button" id="btnEliminar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;" disabled>
             <i class="bi bi-trash"></i>
             <span class="d-none d-md-inline">Eliminar</span>
         </button>
     </section>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-3 shadow-lg border-0">
-                <div class="modal-header bg-danger text-white rounded-top-3">
-                    <h5 class="modal-title" id="deleteModalLabel">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirmar Eliminación
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <p class="fs-5 mb-0">¿Estás seguro que deseas eliminar este paciente?</p>
-                </div>
-                <div class="modal-footer d-flex justify-content-center">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle"></i> Cancelar
-                    </button>
-                    <button type="button" id="confirmDelete" class="btn btn-danger px-4">
-                        <i class="bi bi-trash"></i> Eliminar
-                    </button>
-                </div>
+</main>
+
+<!-- Form oculto para eliminar -->
+<form asp-action="Eliminar" asp-controller="Paciente" method="post" id="frmEliminar" class="d-none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="codigo" id="hdnEliminarCodigo" />
+</form>
+
+<!-- MODAL Confirmar Eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered d-flex justify-content-center align-items-center">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p id="confirmDeleteText" class="mb-0">¿Eliminar paciente?</p>
+            </div>
+            <div class="modal-footer d-flex justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnConfirmarEliminar" class="btn text-white" style="background-color:#880C09;">
+                    <i class="bi bi-trash"></i> Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL Crear/Editar Paciente -->
+<div class="modal fade" id="modalPaciente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Paciente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Guardar" asp-controller="Paciente" method="post" id="frmPaciente">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Código</label>
+                            <input type="text" class="form-control" id="Codigo" name="NuevoPaciente.Codigo" readonly />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Carnet</label>
+                            <input type="text" class="form-control" id="Cedula" name="NuevoPaciente.Cedula" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="Nombre" name="NuevoPaciente.Nombre" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="Apellido" name="NuevoPaciente.Apellido" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Edad</label>
+                            <input type="number" class="form-control" id="Edad" name="NuevoPaciente.Edad" min="17" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Sexo</label>
+                            <select class="form-select" id="Sexo" name="NuevoPaciente.Sexo">
+                                <option>Femenino</option>
+                                <option>Masculino</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Carrera</label>
+                            <select class="form-select" id="Ocupacion" name="NuevoPaciente.Ocupacion">
+                                <option value="">Seleccione...</option>
+                                <option>Ingeniería en Desarrollo de Software</option>
+                                <option>Medicina</option>
+                                <option>Derecho</option>
+                                <option>Arquitectura</option>
+                                <option>Administración</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Estado Civil</label>
+                            <select class="form-select" id="EstadoCivil" name="NuevoPaciente.EstadoCivil">
+                                <option>Casado/a</option>
+                                <option>Soltero/a</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Domicilio</label>
+                            <input type="text" class="form-control" id="Domicilio" name="NuevoPaciente.Domicilio" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="Telefono" name="NuevoPaciente.Telefono" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Estado</label>
+                            <select class="form-select" id="Estado" name="NuevoPaciente.Estado">
+                                <option>Activo</option>
+                                <option>Pasivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnGuardarModalPaciente" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL DE VALIDACIÓN -->
+<div class="modal fade" id="validationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Validación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="validationMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Aceptar</button>
             </div>
         </div>
     </div>
@@ -160,111 +227,149 @@
 
 @section Scripts {
     <script>
-        const btnEditar = document.getElementById('btnEditar');
-        const btnEliminar = document.getElementById('btnEliminar');
-        let selectedRow = null;
-        let pacienteId = null;
+        document.addEventListener('DOMContentLoaded', function () {
+            const $ = (sel) => document.querySelector(sel);
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
+            const setDisabled = (el, v) => { if (el) el.disabled = !!v; };
+            const hasBS = !!(window.bootstrap && bootstrap.Modal);
 
-        // Token antiforgery
-        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            let selectedRow = null;
+            let pacienteId = 0;
 
-        // Selección de fila
-        document.querySelector('#pacientesTable tbody').addEventListener('click', function(e) {
-            const row = e.target.closest('tr');
-            if (!row) return;
+            const btnNuevo = $("#btnNuevo");
+            const btnEditar = $("#btnEditar");
+            const btnEliminar = $("#btnEliminar");
+            const btnGuardarModal = $("#btnGuardarModalPaciente");
 
-            if (selectedRow) selectedRow.classList.remove('table-active');
-            if (selectedRow === row) {
-                selectedRow = null;
-                pacienteId = null;
-                btnEditar.disabled = true;
-                btnEliminar.disabled = true;
-                return;
-            }
+            const modalPacienteEl = $("#modalPaciente");
+            let modalPaciente = null;
+            const openPacienteModal = () => {
+                if (!hasBS) { alert("Falta Bootstrap JS."); return; }
+                if (!modalPaciente) modalPaciente = new bootstrap.Modal(modalPacienteEl);
+                modalPaciente.show();
+            };
 
-            selectedRow = row;
-            selectedRow.classList.add('table-active');
-            pacienteId = row.getAttribute('data-id');
-            console.log("Fila seleccionada, pacienteId:", pacienteId); // DEBUG
-            btnEditar.disabled = false;
-            btnEliminar.disabled = false;
-        });
-
-                // Llenar formulario al editar
-        btnEditar.addEventListener('click', () => {
-            if (!pacienteId) return;
-            console.log("Botón editar clickeado, pacienteId:", pacienteId);
-
-            fetch('@Url.Action("ObtenerPacienteJson", "Paciente")?codigo=' + pacienteId)
-                .then(res => {
-                    console.log("Respuesta raw fetch:", res);
-                    if (!res.ok) throw new Error("Error en la respuesta del servidor");
-                    return res.json();
-                })
-                .then(paciente => {
-                    console.log("Datos recibidos:", paciente);
-                    if (!paciente) {
-                        alert("No se encontraron datos del paciente.");
-                        return;
-                    }
-
-                    // === INICIO DE LA CORRECCIÓN (MAYÚSCULAS A MINÚSCULAS) ===
-                    document.querySelector('input[name="NuevoPaciente.Codigo"]').value = paciente.codigo ?? '0';
-                    document.getElementById('displayCodigo').value = paciente.codigo ?? '';
-
-                    document.querySelector('input[name="NuevoPaciente.Cedula"]').value = paciente.cedula ?? '';
-                    document.querySelector('input[name="NuevoPaciente.Nombre"]').value = paciente.nombre ?? '';
-                    document.querySelector('input[name="NuevoPaciente.Apellido"]').value = paciente.apellido ?? '';
-                    document.querySelector('select[name="NuevoPaciente.Sexo"]').value = paciente.sexo ?? 'Femenino';
-                    document.querySelector('input[name="NuevoPaciente.Edad"]').value = paciente.edad ?? '';
-                    document.querySelector('input[name="NuevoPaciente.Ocupacion"]').value = paciente.ocupacion ?? '';
-                    document.querySelector('select[name="NuevoPaciente.EstadoCivil"]').value = paciente.estadoCivil ?? 'Soltero/a';
-                    document.querySelector('input[name="NuevoPaciente.Domicilio"]').value = paciente.domicilio ?? '';
-                    document.querySelector('input[name="NuevoPaciente.Telefono"]').value = paciente.telefono ?? '';
-                    document.querySelector('select[name="NuevoPaciente.Estado"]').value = paciente.estado ?? 'Activo';
-                    // === FIN DE LA CORRECCIÓN ===
-
-                    // Opcional: hacer scroll al formulario
-                    document.querySelector('form').scrollIntoView({ behavior: 'smooth' });
-                })
-                .catch(err => {
-                    console.error("Error al obtener paciente:", err);
-                    alert("Error al conectar con el servidor.");
+            // Filtro
+            const txtBuscar = $("#txtBuscarPacientes");
+            txtBuscar?.addEventListener('input', function () {
+                const q = this.value.toLowerCase().trim();
+                document.querySelectorAll("#tblPacientes tbody tr").forEach(tr => {
+                    const t = (tr.innerText || "").toLowerCase();
+                    tr.style.display = t.includes(q) ? "" : "none";
                 });
-        });
+            });
 
-        // Eliminar paciente
-        btnEliminar.addEventListener('click', () => {
-            if (!pacienteId) return;
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
-        });
+            // Selección de fila
+            document.querySelectorAll("#tblPacientes tbody tr.row-paciente").forEach(tr => {
+                tr.addEventListener("click", () => {
+                    if (selectedRow) selectedRow.classList.remove("table-active");
+                    tr.classList.add("table-active");
+                    selectedRow = tr;
+                    pacienteId = parseInt(tr.dataset.codigo || "0");
+                    setDisabled(btnEditar, false);
+                    setDisabled(btnEliminar, false);
+                });
+            });
 
-        document.getElementById('confirmDelete').addEventListener('click', () => {
-            if (!pacienteId) return;
+            // Nuevo
+            btnNuevo?.addEventListener("click", () => {
+                $("#frmPaciente")?.reset();
+                setVal("Codigo", 0);
+                selectedRow?.classList.remove("table-active");
+                selectedRow = null;
+                pacienteId = 0;
+                setDisabled(btnEditar, true);
+                setDisabled(btnEliminar, true);
+                openPacienteModal();
+                setTimeout(() => document.getElementById("Cedula")?.focus(), 150);
+            });
 
-            fetch(`/Paciente/Eliminar`, {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': token,
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({ 'codigo': pacienteId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    if (selectedRow) selectedRow.remove();
-                    selectedRow = null;
-                    pacienteId = null;
-                    btnEditar.disabled = true;
-                    btnEliminar.disabled = true;
-                    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-                } else {
-                    alert('Error al eliminar el paciente.');
+            // Editar
+            btnEditar?.addEventListener("click", () => {
+                if (!pacienteId) return;
+                const tr = selectedRow;
+                if (!tr) return;
+                setVal("Codigo", tr.dataset.codigo);
+                setVal("Cedula", tr.dataset.cedula);
+                setVal("Nombre", tr.dataset.nombre);
+                setVal("Apellido", tr.dataset.apellido);
+                setVal("Sexo", tr.dataset.sexo);
+                setVal("Edad", tr.dataset.edad);
+                setVal("Ocupacion", tr.dataset.ocupacion);
+                setVal("EstadoCivil", tr.dataset.estadocivil);
+                setVal("Domicilio", tr.dataset.domicilio);
+                setVal("Telefono", tr.dataset.telefono);
+                setVal("Estado", tr.dataset.estado);
+                openPacienteModal();
+            });
+
+            // Guardar modal con validaciones
+            btnGuardarModal?.addEventListener("click", () => {
+                const carnet = document.getElementById("Cedula");
+                const edad = document.getElementById("Edad");
+                const validationModalEl = $("#validationModal");
+                const validationMessage = $("#validationMessage");
+                let showModal = (msg) => {
+                    if (validationMessage) validationMessage.textContent = msg;
+                    if (hasBS && validationModalEl) {
+                        const vm = new bootstrap.Modal(validationModalEl);
+                        vm.show();
+                    }
+                };
+
+                const carnetRegex = /^\d{4}[A-Za-z]{2}\d{3}$/;
+                if (!carnetRegex.test(carnet.value)) {
+                    showModal("Carnet inválido. Formato: 4 números, 2 letras, 3 números, ejemplo 2024CV601");
+                    carnet.focus();
+                    return;
                 }
-            })
-            .catch(() => alert("Error de conexión con el servidor."));
+
+                if  (parseInt(edad.value) < 17) {
+                    showModal("La edad mínima es 17 años.");
+                    edad.focus();
+                    return;
+                }
+
+                document.getElementById("frmPaciente")?.submit();
+            });
+
+            // Eliminar sin recargar página negra
+            const btnConfirmDelete = $("#btnConfirmarEliminar");
+            const deleteModalEl = $("#deleteModal");
+
+            btnEliminar?.addEventListener("click", () => {
+                if (!pacienteId) return;
+                if (hasBS) new bootstrap.Modal(deleteModalEl).show();
+            });
+
+            btnConfirmDelete?.addEventListener("click", () => {
+                const hdn = $("#hdnEliminarCodigo");
+                if (!hdn) return;
+
+                hdn.value = pacienteId;
+
+                fetch($("#frmEliminar").action, {
+                    method: "POST",
+                    body: new FormData($("#frmEliminar"))
+                }).then(() => {
+                    if (selectedRow) selectedRow.remove();
+                    pacienteId = 0;
+                    setDisabled(btnEditar, true);
+                    setDisabled(btnEliminar, true);
+
+                    // Cerramos correctamente el modal
+                    const deleteModalInstance = bootstrap.Modal.getInstance(deleteModalEl);
+                    if (deleteModalInstance) deleteModalInstance.hide();
+                });
+            });
+
+            // Aseguramos que el modal se pueda cerrar con la X o Cancelar
+            deleteModalEl?.addEventListener('hidden.bs.modal', () => {
+                pacienteId = 0;
+                setDisabled(btnEditar, true);
+                setDisabled(btnEliminar, true);
+            });
         });
     </script>
 }
+
