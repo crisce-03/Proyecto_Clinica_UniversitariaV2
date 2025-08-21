@@ -4,26 +4,63 @@
 
 <section class="min-vh-100 gradient-custom d-flex justify-content-center align-items-center">
     <div class="h-100 py-5 d-flex justify-content-center align-items-center">
-        <div class="col-10 col-md-9 col-lg-6 col-xl-5 col-xxl-4 col-">
-            <div class="logo"><img src="~/img/LOGO OFICIAL_UNICAES.png" alt="" class="img-fluid"></div>
-            <div class="card  text-white" style="background-color: #880C09; border-radius: 1rem;">
+        <div class="col-10 col-md-9 col-lg-6 col-xl-5 col-xxl-4">
+            <div class="logo">
+                <img src="~/img/LOGO OFICIAL_UNICAES.png" alt="UNICAES" class="img-fluid">
+            </div>
+
+            <div class="card text-white" style="background-color:#880C09; border-radius:1rem;">
                 <div class="card-body p-5 text-center">
 
-                    <h2 class="fw-bold  mb-2 text-uppercase">Iniciar Sesión</h2>
+                    <h2 class="fw-bold mb-2 text-uppercase">Iniciar Sesión</h2>
                     <p class="text-white-50 mb-4">Ingresa tu usuario y contraseña</p>
 
-                    <form method="post" action="/Home/Index">
-                        <div class="form-outline form-white mb-4">
-                            <label class="form-label" for="typeEmailX">Usuario</label>
-                            <input type="text" id="typeEmailX" class="form-control form-control-lg" name="usuario" required />
+                    @* Mensajes *@
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @ViewBag.Error
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["Mensaje"] != null)
+                    {
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            @TempData["Mensaje"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form method="post" asp-controller="Home" asp-action="Index" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-outline form-white mb-4 text-start">
+                            <label class="form-label" for="usuario">Usuario</label>
+                            <input type="text"
+                                   id="usuario"
+                                   name="usuario"
+                                   class="form-control form-control-lg"
+                                   required
+                                   value="@(Context.Request.HasFormContentType ? (string)Context.Request.Form["usuario"] : "")" />
                         </div>
 
-                        <div class="form-outline form-white mb-4">
-                            <label class="form-label" for="typePasswordX">Contraseña</label>
-                            <input type="password" id="typePasswordX" class="form-control form-control-lg" name="contrasena" required />
+                        <div class="form-outline form-white mb-4 text-start">
+                            <label class="form-label" for="contrasena">Contraseña</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       id="contrasena"
+                                       name="contrasena"
+                                       class="form-control form-control-lg"
+                                       required />
+                                <button class="btn btn-outline-light" type="button" id="btnTogglePwd" title="Mostrar/Ocultar">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <button class="btn btn-outline-light btn-lg px-5 fs-6" type="submit">Iniciar Sesión</button>
+                        <button class="btn btn-outline-light btn-lg px-5 fs-6 w-100" type="submit" id="btnLogin">
+                            Iniciar Sesión
+                        </button>
                     </form>
 
                 </div>
@@ -31,3 +68,29 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        // Evita doble envío y toggle de contraseña
+        (function () {
+            const form = document.querySelector('form[asp-action="Index"]');
+            const btn = document.getElementById('btnLogin');
+            const pwd = document.getElementById('contrasena');
+            const toggle = document.getElementById('btnTogglePwd');
+
+            form?.addEventListener('submit', function () {
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = 'Ingresando...';
+                }
+            });
+
+            toggle?.addEventListener('click', function () {
+                const isPwd = pwd.getAttribute('type') === 'password';
+                pwd.setAttribute('type', isPwd ? 'text' : 'password');
+                this.innerHTML = isPwd ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+            });
+        })();
+    </script>
+}
+

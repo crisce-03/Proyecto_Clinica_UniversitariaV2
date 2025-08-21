@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Proyecto_Clinica_Universitaria.Datos;
+using Proyecto_Clinica_Universitaria.Filtros;
 using Proyecto_Clinica_Universitaria.Models;
 using Proyecto_Clinica_Universitaria.Servicios;
-using Microsoft.AspNetCore.Http;
-using System.IO;
-using System.Collections.Generic;
-using System;
-using System.Threading.Tasks;
 
 namespace Proyecto_Clinica_Universitaria.Controllers
 {
@@ -42,6 +43,7 @@ namespace Proyecto_Clinica_Universitaria.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(10_000_000)] // ~10MB
+        [PermisoRequerido("Edicion", "Administracion")]
         public async Task<IActionResult> Guardar(PacienteVistaModel model, IFormFile? imagenArchivo)
         {
             // Subida de imagen (opcional)

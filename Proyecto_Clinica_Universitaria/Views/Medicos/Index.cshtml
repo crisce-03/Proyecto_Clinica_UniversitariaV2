@@ -3,6 +3,13 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Accessor
+@{
+    var permisoActual = Accessor.HttpContext?.Session.GetString("Permiso") ?? "Lectura";
+    bool esAdmin = string.Equals(permisoActual, "Administracion", StringComparison.OrdinalIgnoreCase);
+}
+
 @using System.Linq
 @using Proyecto_Clinica_Universitaria.Models
 @model Proyecto_Clinica_Universitaria.Models.MedicoModel
@@ -32,18 +39,30 @@
             </div>
         </div>
 
+        @* Aviso para usuarios sin permiso de administración *@
+        @if (!esAdmin)
+        {
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <div>
+                    No tienes permisos para <strong>crear, editar ni eliminar</strong> médicos.
+                    Permiso actual: <strong>@permisoActual</strong>.
+                </div>
+            </div>
+        }
+
         <div class="table-responsive" style="max-height:70vh; overflow-y:auto;">
             <table class="table table-hover align-middle" id="tblMedicos">
                 <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
-                        <th style="width:68px;">Foto</th> <!-- NUEVA COLUMNA -->
+                        <th style="width:68px;">Foto</th>
                         <th>DUI</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>Especialidad</th>
                         <th>Teléfono</th>
-                        <th>Estado</th>
-                        <th style="width: 120px;"></th>
+                        <th>Permiso</th>
+                        <th style="width:120px;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,7 +85,7 @@
                                 data-correo="@(item.Correo ?? "")"
                                 data-usuario="@(item.Usuario ?? "")"
                                 data-contrasena="@(item.Contrasena ?? "")"
-                                data-estado="@item.Estado"
+                                data-permiso="@item.Permiso"
                                 data-imagenmedico="@(item.ImagenMedico ?? "")">
                                 <td class="text-center">
                                     <img class="foto img-thumbnail"
@@ -80,14 +99,14 @@
                                 <td>@item.Apellido</td>
                                 <td>@nomEsp</td>
                                 <td>@item.Telefono</td>
-                                <td>@item.Estado</td>
+                                <td>@item.Permiso</td>
                                 <td class="text-end"></td>
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="8" class="text-center text-muted">Sin registros para mostrar.</td></tr> <!-- colspan 8 por la nueva columna -->
+                        <tr><td colspan="8" class="text-center text-muted">Sin registros para mostrar.</td></tr>
                     }
                 </tbody>
             </table>
@@ -97,34 +116,43 @@
 
     <!-- BARRA DE ACCIONES -->
     <section class="d-flex flex-wrap justify-content-center gap-3 mt-4 p-3 bg-white rounded">
-        <button type="button" id="btnNuevo"
-                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
-                style="background-color:#880C09;">
-            <i class="bi bi-plus-circle"></i>
-            <span class="d-none d-md-inline">Nuevo</span>
-        </button>
+        @if (esAdmin)
+        {
+            <button type="button" id="btnNuevo"
+                    class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                    style="background-color:#880C09;">
+                <i class="bi bi-plus-circle"></i>
+                <span class="d-none d-md-inline">Nuevo</span>
+            </button>
 
-        <button type="button" id="btnEditar"
-                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
-                style="background-color:#880C09;" disabled>
-            <i class="bi bi-pencil"></i>
-            <span class="d-none d-md-inline">Editar</span>
-        </button>
+            <button type="button" id="btnEditar"
+                    class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                    style="background-color:#880C09;" disabled>
+                <i class="bi bi-pencil"></i>
+                <span class="d-none d-md-inline">Editar</span>
+            </button>
 
-        <button type="button" id="btnEliminar"
-                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
-                style="background-color:#880C09;" disabled>
-            <i class="bi bi-trash"></i>
-            <span class="d-none d-md-inline">Eliminar</span>
-        </button>
+            <button type="button" id="btnEliminar"
+                    class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                    style="background-color:#880C09;" disabled>
+                <i class="bi bi-trash"></i>
+                <span class="d-none d-md-inline">Eliminar</span>
+            </button>
 
-        <!-- Este botón envía el formulario del modal -->
-        <button type="submit" id="btnGuardar" form="frmMedico"
-                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
-                style="background-color:#880C09;" disabled>
-            <i class="bi bi-save"></i>
-            <span class="d-none d-md-inline">Guardar</span>
-        </button>
+            <!-- Este botón envía el formulario del modal -->
+            <button type="submit" id="btnGuardar" form="frmMedico"
+                    class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                    style="background-color:#880C09;" disabled>
+                <i class="bi bi-save"></i>
+                <span class="d-none d-md-inline">Guardar</span>
+            </button>
+        }
+        else
+        {
+            <div class="text-muted small text-center w-100">
+                Acciones deshabilitadas por permiso: <strong>@permisoActual</strong>.
+            </div>
+        }
     </section>
 
 </main>
@@ -156,7 +184,7 @@
     </div>
 </div>
 
-<!-- MODAL: Crear/Editar Médico (contiene el formulario original) -->
+<!-- MODAL: Crear/Editar Médico -->
 <div class="modal fade" id="modalMedico" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable d-flex justify-content-center align-items-center">
         <div class="modal-content">
@@ -190,10 +218,10 @@
                             <label class="form-label">Especialidad</label>
                             <select asp-for="EspecialidadCodigo" id="EspecialidadCodigo"
                                     asp-items="@(new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-                                                                                                        ViewBag.ListaEspecialidades as List<MedicosEspecialidadModel>,
-                                                                                                        nameof(MedicosEspecialidadModel.Codigo),
-                                                                                                        nameof(MedicosEspecialidadModel.Especialidad),
-                                                                                                        Model?.EspecialidadCodigo))"
+                                        ViewBag.ListaEspecialidades as List<MedicosEspecialidadModel>,
+                                        nameof(MedicosEspecialidadModel.Codigo),
+                                        nameof(MedicosEspecialidadModel.Especialidad),
+                                        Model?.EspecialidadCodigo))"
                                     class="form-select">
                                 <option value="0">Seleccione...</option>
                             </select>
@@ -204,7 +232,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Correo</label>
-                            <input asp-for="Correo" id="Correo" class="form-control" placeholder="&#64"/>
+                            <input asp-for="Correo" id="Correo" class="form-control" placeholder="&#64;" />
                         </div>
 
                         <div class="col-md-3">
@@ -215,11 +243,13 @@
                             <label class="form-label">Password</label>
                             <input asp-for="Contrasena" id="Contrasena" type="password" class="form-control" />
                         </div>
+
                         <div class="col-md-3">
-                            <label class="form-label">Estado</label>
-                            <select asp-for="Estado" id="Estado" class="form-select">
-                                <option value="Activo">Activo</option>
-                                <option value="Pasivo">Pasivo</option>
+                            <label class="form-label">Permiso</label>
+                            <select asp-for="Permiso" id="Permiso" name="Permiso" class="form-select @(!esAdmin ? "disabled" : "")">
+                                <option value="Lectura">Lectura</option>
+                                <option value="Edicion">Edición</option>
+                                <option value="Administracion">Administración</option>
                             </select>
                         </div>
 
@@ -244,7 +274,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="btnGuardarModalMedico" class="btn btn-primary">Guardar</button>
+                @if (esAdmin)
+                {
+                    <button type="button" id="btnGuardarModalMedico" class="btn btn-primary">Guardar</button>
+                }
             </div>
         </div>
     </div>
@@ -266,7 +299,7 @@
         <ul class="mb-0">
           <li>El <strong>DUI</strong> tenga <strong>9 dígitos</strong> (solo números).</li>
           <li>El <strong>Teléfono</strong> tenga <strong>8 dígitos con guion</strong> (formato <code>####-####</code>).</li>
-          <li>El <strong>Correo</strong> contenga <strong>&#64;</strong> (ej. <code>usuario@gmail.com</code>).</li>
+          <li>El <strong>Correo</strong> contenga <strong></strong> (ej. <code>usuario@gmail.com</code>).</li>
         </ul>
         <small class="text-muted d-block mt-2">
           Nota: si tu sistema sigue sin permitir guardar, corrige los campos y vuelve a intentar.
@@ -280,6 +313,7 @@
   </div>
 </div>
 
+@section Scripts {
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const $ = (sel) => document.querySelector(sel);
@@ -287,7 +321,10 @@
     const setDisabled = (el, v) => { if (el) el.disabled = !!v; };
     const hasBS = !!(window.bootstrap && bootstrap.Modal);
 
- 
+    // Permisos del usuario actual (inyectado desde Razor)
+    const PERMISO_ACTUAL = '@permisoActual';
+    const ES_ADMIN = PERMISO_ACTUAL.toLowerCase() === 'administracion';
+
     const AT = String.fromCharCode(64);
 
     // Placeholder SVG gris para la columna Foto
@@ -359,46 +396,55 @@
         setVal("Correo", tr.dataset.correo);
         setVal("Usuario", tr.dataset.usuario);
         setVal("Contrasena", tr.dataset.contrasena);
-        setVal("Estado", tr.dataset.estado);
+        setVal("Permiso", tr.dataset.permiso || "Lectura");
         setVal("ImagenMedico", tr.dataset.imagenmedico || "");
 
         showPreviewFromUrl(tr.dataset.imagenmedico || "");
 
-        setDisabled(btnEditar, false);
-        setDisabled(btnEliminar, false);
-        setDisabled(btnGuardar, false);
+        // Habilitar acciones solo si es admin
+        setDisabled(btnEditar, !ES_ADMIN);
+        setDisabled(btnEliminar, !ES_ADMIN);
+        setDisabled(btnGuardar, !ES_ADMIN);
       });
     });
 
     // Nuevo
-    btnNuevo?.addEventListener("click", () => {
-      const form = document.getElementById("frmMedico");
-      form?.reset();
-      setVal("Codigo", 0);
-      if (selectedRow) selectedRow.classList.remove("table-active");
-      selectedRow = null;
-      selectedId = 0;
-      if (preview){ preview.src="#"; preview.classList.add("d-none"); }
-      if (fileInput) fileInput.value = "";
-      setDisabled(btnEditar, true);
-      setDisabled(btnEliminar, true);
-      setDisabled(btnGuardar, false);
-      openMedicoModal();
-      setTimeout(() => document.getElementById("Cedula")?.focus(), 150);
-    });
+    if (btnNuevo) {
+      btnNuevo.addEventListener("click", () => {
+        if (!ES_ADMIN) { alert("No tienes permiso para crear médicos."); return; }
+
+        const form = document.getElementById("frmMedico");
+        form?.reset();
+        setVal("Codigo", 0);
+        if (selectedRow) selectedRow.classList.remove("table-active");
+        selectedRow = null;
+        selectedId = 0;
+        if (preview){ preview.src="#"; preview.classList.add("d-none"); }
+        if (fileInput) fileInput.value = "";
+        setVal("Permiso", "Lectura"); // por defecto si quieres
+        setDisabled(btnEditar, true);
+        setDisabled(btnEliminar, true);
+        setDisabled(btnGuardar, false);
+        openMedicoModal();
+        setTimeout(() => document.getElementById("Cedula")?.focus(), 150);
+      });
+    }
 
     // Editar
-    btnEditar?.addEventListener("click", () => {
-      if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
-      openMedicoModal();
-      setTimeout(() => document.getElementById("Nombre")?.focus(), 150);
-    });
+    if (btnEditar) {
+      btnEditar.addEventListener("click", () => {
+        if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
+        if (!ES_ADMIN) { alert("No tienes permiso para editar médicos."); return; }
+        openMedicoModal();
+        setTimeout(() => document.getElementById("Nombre")?.focus(), 150);
+      });
+    }
 
-    // ==========================
-    // Guardar (modal) -> VALIDA antes de decidir si muestra advertencia o envía
-    // ==========================
+    // Guardar (modal) -> valida y exige Admin
     document.getElementById('btnGuardarModalMedico')?.addEventListener("click", (ev) => {
       ev.preventDefault();
+
+      if (!ES_ADMIN) { alert("No tienes permiso para guardar cambios de médicos."); return; }
 
       const duiEl = document.getElementById("Cedula");
       const telEl = document.getElementById("Telefono");
@@ -410,12 +456,9 @@
 
       const duiValido = /^\d{9}$/.test(dui);                 // 9 dígitos
       const telValido = /^\d{4}-\d{4}$/.test(tel);           // ####-####
-
-      
       const correoRegex = new RegExp(`^[^\\s${AT}]+${AT}[^\\s${AT}]+\\.[^\\s${AT}]+$`);
       const correoValido = correoRegex.test(correo);
 
-      // (Opcional) marcar visualmente inválidos
       [ [duiEl, duiValido], [telEl, telValido], [correoEl, correoValido] ].forEach(([el, ok])=>{
         if (!el) return;
         el.classList.toggle("is-invalid", !ok);
@@ -423,37 +466,39 @@
       });
 
       if (duiValido && telValido && correoValido) {
-        // ✅ Datos correctos → enviar directamente el form
         document.getElementById("frmMedico")?.submit();
       } else {
-        // ❌ Hay errores → mostrar advertencia
         if (hasBS) new bootstrap.Modal(document.getElementById('modalAdvertencia')).show();
         else alert("Verifica: DUI 9 dígitos, Teléfono ####-####, Correo válido con " + AT);
       }
     });
 
-    // Eliminar -> confirm
-    btnEliminar?.addEventListener("click", () => {
-      if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
-      document.getElementById("hdnEliminarCodigo").value = selectedId;
-      const texto = `¿Eliminar al médico ${selectedRow?.dataset?.nombre ?? ''} ${selectedRow?.dataset?.apellido ?? ''} (DUI: ${selectedRow?.dataset?.cedula ?? ''})?`;
-      if (confirmText) confirmText.textContent = texto;
+    // Eliminar -> confirm (solo admin)
+    if (btnEliminar) {
+      btnEliminar.addEventListener("click", () => {
+        if (!selectedId) { alert("Selecciona un médico de la tabla."); return; }
+        if (!ES_ADMIN) { alert("No tienes permiso para eliminar médicos."); return; }
 
-      if (hasBS) new bootstrap.Modal(modalConfirmEl).show();
-      else if (confirm(texto)) document.getElementById("frmEliminar").submit();
-    });
+        document.getElementById("hdnEliminarCodigo").value = selectedId;
+        const texto = `¿Eliminar al médico ${selectedRow?.dataset?.nombre ?? ''} ${selectedRow?.dataset?.apellido ?? ''} (DUI: ${selectedRow?.dataset?.cedula ?? ''})?`;
+        if (confirmText) confirmText.textContent = texto;
+
+        if (hasBS) new bootstrap.Modal(modalConfirmEl).show();
+        else if (confirm(texto)) document.getElementById("frmEliminar").submit();
+      });
+    }
 
     // Confirmar eliminación
     btnConfirmarEliminar?.addEventListener("click", () => {
       document.getElementById("frmEliminar").submit();
     });
 
-    // Habilitar Guardar si cambian campos del form del modal
+    // Habilitar Guardar si cambian campos del form del modal (pero no para no-admin)
     document.addEventListener("input", (ev) => {
-      if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, false);
+      if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, !ES_ADMIN ? true : false);
     });
     document.addEventListener("change", (ev) => {
-      if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, false);
+      if (ev.target.closest("#frmMedico")) setDisabled(btnGuardar, !ES_ADMIN ? true : false);
     });
 
     // Preview cuando cambian ruta o archivo
@@ -469,13 +514,13 @@
       }
     });
 
-    // ---- Script para enviar tras confirmar en la advertencia ----
+    // Intentar guardar tras advertencia
     document.getElementById('btnIntentarGuardar')?.addEventListener('click', function () {
-      // Normalizaciones opcionales:
-      // var dui = document.getElementById('Cedula'); if (dui) dui.value = (dui.value||'').replace(/\D/g,'');
-      // var tel = document.getElementById('Telefono'); if (tel) tel.value = (tel.value||'').replace(/\D/g,''); // si tu BD guarda solo dígitos
+      if (!ES_ADMIN) { alert("No tienes permiso para guardar cambios de médicos."); return; }
       document.getElementById("frmMedico")?.submit();
     });
 
   });
 </script>
+}
+

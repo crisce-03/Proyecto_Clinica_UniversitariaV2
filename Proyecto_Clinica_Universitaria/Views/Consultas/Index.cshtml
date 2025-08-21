@@ -5,6 +5,15 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Accessor
+@{
+    var permisoActual = Accessor.HttpContext?.Session.GetString("Permiso") ?? "Lectura";
+    bool puedeEditar =
+        string.Equals(permisoActual, "Edicion", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(permisoActual, "Administracion", StringComparison.OrdinalIgnoreCase);
+}
+
 <main class="p-3">
 
     <form asp-action="Guardar" asp-controller="Consultas" method="post">
@@ -22,153 +31,172 @@
 
         <div class="container-fluid">
 
-            <section class="row">
-
-                <article class="col-md-6 p-3 border-end bg-white">
-                    <h5 class="mb-4">Datos del Paciente</h5>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label asp-for="Codigo" class="form-label"></label>
-                            <input asp-for="Codigo" name="Codigo" class="form-control" readonly />
-                        </div>
-                        <div class="col-md-6">
-                            <label asp-for="Paciente" class="form-label"></label>
-                            <select asp-for="Paciente" class="form-select">
-                                <option value="">-- Selecciona un paciente --</option>
-                                @if (ViewBag.ListaPacientes != null)
-                                {
-                                    foreach (var paciente in ViewBag.ListaPacientes)
-                                    {
-                                        if (paciente.Codigo == Model.Paciente)
-                                        {
-                                            <option value="@paciente.Codigo" selected="selected">@paciente.Nombre</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@paciente.Codigo">@paciente.Nombre</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                        </div>
+            @* Aviso de permisos *@
+            @if (!puedeEditar)
+            {
+                <div class="alert alert-warning d-flex align-items-center mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>
+                        Estás en modo <strong>@permisoActual</strong>. No puedes <strong>crear ni editar</strong> consultas.
                     </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label asp-for="Cedula" class="form-label"></label>
-                            <input asp-for="Cedula" class="form-control" readonly />
-                        </div>
-                        <div class="col-md-4">
-                            <label asp-for="Nombre" class="form-label"></label>
-                            <input asp-for="Nombre" class="form-control" readonly />
-                        </div>
-                        <div class="col-md-4">
-                            <label asp-for="Apellido" class="form-label"></label>
-                            <input asp-for="Apellido" class="form-control" readonly />
-                        </div>
-                    </div>
-                </article>
-
-                <article class="col-md-6 p-3 bg-white">
-                    <h5 class="mb-4">Datos Médicos</h5>
-
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label asp-for="Fecha" class="form-label"></label>
-                            <input asp-for="Fecha" class="form-control" type="date" />
-                        </div>
-                        <div class="col-md-4">
-                            <label asp-for="Temperatura" class="form-label"></label>
-                            <input asp-for="Temperatura" class="form-control" />
-                        </div>
-                        <div class="col-md-4">
-                            <label asp-for="Pulso" class="form-label"></label>
-                            <input asp-for="Pulso" class="form-control" />
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label asp-for="Medico" class="form-label"></label>
-                            <select asp-for="Medico" class="form-select">
-                                <option value="">-- Selecciona un médico --</option>
-                                @if (ViewBag.ListaMedicos != null)
-                                {
-                                    foreach (var medico in ViewBag.ListaMedicos)
-                                    {
-                                        if (medico.Codigo == Model.Medico)
-                                        {
-                                            <option value="@medico.Codigo" selected="selected">@medico.Nombre</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@medico.Codigo">@medico.Nombre</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="Medicamento" class="form-label"></label>
-                            <select asp-for="Medicamento" class="form-select">
-                                <option value="">-- Selecciona un medicamento --</option>
-                                @if (ViewBag.ListaMedicamentos != null)
-                                {
-                                    foreach (var medicamento in ViewBag.ListaMedicamentos)
-                                    {
-                                        if (medicamento.Codigo == Model.Medicamento)
-                                        {
-                                            <option value="@medicamento.Codigo" selected="selected">@medicamento.Medicamento</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@medicamento.Codigo">@medicamento.Medicamento</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label asp-for="Peso" class="form-label"></label>
-                            <input asp-for="Peso" class="form-control" />
-                        </div>
-                        <div class="col-md-4">
-                            <label asp-for="Presion" class="form-label"></label>
-                            <input asp-for="Presion" class="form-control" />
-                        </div>
-                        <div class="col-md-4">
-                            <label asp-for="SwatO2" class="form-label"></label>
-                            <input asp-for="SwatO2" class="form-control" />
-                        </div>
-                    </div>
-                </article>
-
-            </section>
-
-            <section class="bg-white p-3 mt-4 rounded">
-                <h6 class="mb-3">Recordatorio</h6>
-                <textarea asp-for="Recordatorio" class="form-control" rows="3"></textarea>
-            </section>
-
-            <section class="bg-white p-3 mt-4 rounded">
-                <h6 class="mb-3">Diagnóstico</h6>
-                <div class="mb-3">
-                    <label asp-for="Evolucion" class="form-label"></label>
-                    <textarea asp-for="Evolucion" class="form-control" rows="3"></textarea>
                 </div>
-                <div class="mb-3">
-                    <label asp-for="Prescripcion" class="form-label"></label>
-                    <textarea asp-for="Prescripcion" class="form-control" rows="3"></textarea>
-                </div>
-            </section>
+            }
+
+            @* Deshabilitamos todo el formulario cuando no puede editar *@
+            <fieldset @(puedeEditar ? null : @Html.Raw("disabled"))>
+
+                <section class="row">
+
+                    <article class="col-md-6 p-3 border-end bg-white">
+                        <h5 class="mb-4">Datos del Paciente</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Codigo" class="form-label"></label>
+                                <input asp-for="Codigo" name="Codigo" class="form-control" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Paciente" class="form-label"></label>
+                                <select asp-for="Paciente" class="form-select">
+                                    <option value="">-- Selecciona un paciente --</option>
+                                    @if (ViewBag.ListaPacientes != null)
+                                    {
+                                        foreach (var paciente in ViewBag.ListaPacientes)
+                                        {
+                                            if (paciente.Codigo == Model.Paciente)
+                                            {
+                                                <option value="@paciente.Codigo" selected="selected">@paciente.Nombre</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@paciente.Codigo">@paciente.Nombre</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="Cedula" class="form-label"></label>
+                                <input asp-for="Cedula" class="form-control" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Nombre" class="form-label"></label>
+                                <input asp-for="Nombre" class="form-control" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Apellido" class="form-label"></label>
+                                <input asp-for="Apellido" class="form-control" readonly />
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="col-md-6 p-3 bg-white">
+                        <h5 class="mb-4">Datos Médicos</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="Fecha" class="form-label"></label>
+                                <input asp-for="Fecha" class="form-control" type="date" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Temperatura" class="form-label"></label>
+                                <input asp-for="Temperatura" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Pulso" class="form-label"></label>
+                                <input asp-for="Pulso" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Medico" class="form-label"></label>
+                                <select asp-for="Medico" class="form-select">
+                                    <option value="">-- Selecciona un médico --</option>
+                                    @if (ViewBag.ListaMedicos != null)
+                                    {
+                                        foreach (var medico in ViewBag.ListaMedicos)
+                                        {
+                                            if (medico.Codigo == Model.Medico)
+                                            {
+                                                <option value="@medico.Codigo" selected="selected">@medico.Nombre</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@medico.Codigo">@medico.Nombre</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Medicamento" class="form-label"></label>
+                                <select asp-for="Medicamento" class="form-select">
+                                    <option value="">-- Selecciona un medicamento --</option>
+                                    @if (ViewBag.ListaMedicamentos != null)
+                                    {
+                                        foreach (var medicamento in ViewBag.ListaMedicamentos)
+                                        {
+                                            if (medicamento.Codigo == Model.Medicamento)
+                                            {
+                                                <option value="@medicamento.Codigo" selected="selected">@medicamento.Medicamento</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@medicamento.Codigo">@medicamento.Medicamento</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="Peso" class="form-label"></label>
+                                <input asp-for="Peso" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Presion" class="form-label"></label>
+                                <input asp-for="Presion" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="SwatO2" class="form-label"></label>
+                                <input asp-for="SwatO2" class="form-control" />
+                            </div>
+                        </div>
+                    </article>
+
+                </section>
+
+                <section class="bg-white p-3 mt-4 rounded">
+                    <h6 class="mb-3">Recordatorio</h6>
+                    <textarea asp-for="Recordatorio" class="form-control" rows="3"></textarea>
+                </section>
+
+                <section class="bg-white p-3 mt-4 rounded">
+                    <h6 class="mb-3">Diagnóstico</h6>
+                    <div class="mb-3">
+                        <label asp-for="Evolucion" class="form-label"></label>
+                        <textarea asp-for="Evolucion" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Prescripcion" class="form-label"></label>
+                        <textarea asp-for="Prescripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                </section>
+
+            </fieldset>
 
             <section class="d-flex justify-content-center gap-3 mt-4 p-3 bg-white rounded">
-                <button type="submit" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2" style="background-color:#880C09;">
+                <button type="submit"
+                        class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2"
+                        style="background-color:#880C09;"
+                        @(puedeEditar ? null : @Html.Raw("disabled title='No tienes permiso para guardar'"))>
                     <i class="bi bi-save"></i>
                     <span class="d-none d-md-inline">Guardar</span>
                 </button>
@@ -182,6 +210,10 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Si el formulario está deshabilitado por permisos, no hacemos nada extra.
+            const formDisabled = document.querySelector("fieldset[disabled]") !== null;
+            if (formDisabled) return;
+
             const selPaciente = document.querySelector("select[name='Paciente']");
             const txtCedula   = document.querySelector("input[name='Cedula']");
             const txtNombre   = document.querySelector("input[name='Nombre']");
@@ -190,9 +222,9 @@
             const endpoint = '@Url.Action("ObtenerPaciente", "Paciente")'; // ✔ ruta correcta (singular)
 
             function limpiar() {
-                txtCedula.value = "";
-                txtNombre.value = "";
-                txtApellido.value = "";
+                if (txtCedula)  txtCedula.value = "";
+                if (txtNombre)  txtNombre.value = "";
+                if (txtApellido) txtApellido.value = "";
             }
 
             function cargarPaciente(id) {
@@ -201,10 +233,10 @@
                     .then(r => r.ok ? r.json() : Promise.reject(r.status))
                     .then(d => {
                         if (!d) { limpiar(); return; }
-                        // Si tu JSON sale con PascalCase, cambia a d.Cedula/d.Nombre/d.Apellido
-                        txtCedula.value  = d.cedula  ?? "";
-                        txtNombre.value  = d.nombre  ?? "";
-                        txtApellido.value = d.apellido ?? "";
+                        // Ajusta a d.Cedula/d.Nombre/d.Apellido si tu endpoint devuelve PascalCase
+                        if (txtCedula)  txtCedula.value  = (d.cedula  ?? d.Cedula  ?? "");
+                        if (txtNombre)  txtNombre.value  = (d.nombre  ?? d.Nombre  ?? "");
+                        if (txtApellido) txtApellido.value = (d.apellido ?? d.Apellido ?? "");
                     })
                     .catch(err => {
                         console.error("Error obteniendo paciente:", err);
@@ -213,12 +245,9 @@
             }
 
             if (selPaciente) {
-                // 1) Rellenar si ya viene uno seleccionado al cargar la página
                 if (selPaciente.value) cargarPaciente(selPaciente.value);
-
-                // 2) Rellenar cada vez que cambie la selección
                 selPaciente.addEventListener("change", e => cargarPaciente(e.target.value));
             }
         });
     </script>
-    }
+}

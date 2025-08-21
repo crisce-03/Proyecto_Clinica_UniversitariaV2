@@ -8,20 +8,34 @@ namespace Proyecto_Clinica_Universitaria.Datos
 {
     public class MedicoDatos
     {
-        // Helper seguro: intenta leer una columna; si no existe, devuelve null
+        // Helper: intenta leer una columna; si no existe, devuelve null
         private static string? TryGetString(IDataRecord dr, string col)
         {
             try
             {
-                int i = ((IDataRecord)dr).GetOrdinal(col);
+                int i = dr.GetOrdinal(col);
                 return dr.IsDBNull(i) ? null : dr.GetValue(i)?.ToString();
             }
             catch (IndexOutOfRangeException)
             {
-                return null; // la columna no viene en el SELECT
+                return null; // la columna no viene en el SELECT/SP
             }
         }
 
+        private static string NormalizarPermiso(string? p)
+        {
+            var v = (p ?? "").Trim();
+            if (v.Equals("Administracion", StringComparison.OrdinalIgnoreCase)) return "Administracion";
+            if (v.Equals("Edicion", StringComparison.OrdinalIgnoreCase)) return "Edicion";
+            return "Lectura";
+        }
+
+        private static object DbNullIfNullOrEmpty(string? v) =>
+            string.IsNullOrWhiteSpace(v) ? DBNull.Value : v!;
+
+        // =========================
+        // LISTAR
+        // =========================
         public List<MedicoModel> Listar()
         {
             var lista = new List<MedicoModel>();
@@ -30,7 +44,7 @@ namespace Proyecto_Clinica_Universitaria.Datos
             using (var conexion = new SqlConnection(cn.getCadenaSQL()))
             {
                 conexion.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ListarMedico", conexion))
+                using (var cmd = new SqlCommand("sp_ListarMedico", conexion))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -41,30 +55,28 @@ namespace Proyecto_Clinica_Universitaria.Datos
                             lista.Add(new MedicoModel
                             {
                                 Codigo = Convert.ToInt32(dr["Codigo"]),
-                                Cedula = dr["Cedula"].ToString() ?? string.Empty,
-                                Nombre = dr["Nombre"].ToString() ?? string.Empty,
-                                Apellido = dr["Apellido"].ToString() ?? string.Empty,
+                                Cedula = dr["Cedula"]?.ToString() ?? string.Empty,
+                                Nombre = dr["Nombre"]?.ToString() ?? string.Empty,
+                                Apellido = dr["Apellido"]?.ToString() ?? string.Empty,
                                 EspecialidadCodigo = Convert.ToInt32(dr["EspecialidadCodigo"]),
                                 Telefono = dr["Telefono"] == DBNull.Value ? null : dr["Telefono"]!.ToString(),
                                 Correo = dr["Correo"] == DBNull.Value ? null : dr["Correo"]!.ToString(),
                                 Usuario = dr["Usuario"] == DBNull.Value ? null : dr["Usuario"]!.ToString(),
-
-                                // ❌ NO LEAS dr["Contrasena"] si el SP no la trae
-                                // Contrasena = ...
-
-                                // bit -> "Activo"/"Pasivo"
-                                Estado = (dr["Estado"] != DBNull.Value && Convert.ToBoolean(dr["Estado"])) ? "Activo" : "Pasivo",
-
-                                ImagenMedico = dr["ImagenMedico"] == DBNull.Value ? null : dr["ImagenMedico"]!.ToString()
+                                // Contrasena: normalmente no se lista
+                                ImagenMedico = dr["ImagenMedico"] == DBNull.Value ? null : dr["ImagenMedico"]!.ToString(),
+                                // 👇 Toma el permiso si viene; si no, por defecto "Lectura"
+                                Permiso = TryGetString(dr, "Permiso") ?? "Lectura"
                             });
                         }
                     }
                 }
             }
-
             return lista;
         }
 
+        // =========================
+        // OBTENER (por codigo)
+        // =========================
         public MedicoModel? Obtener(int codigo)
         {
             MedicoModel? obj = null;
@@ -73,7 +85,7 @@ namespace Proyecto_Clinica_Universitaria.Datos
             using (var conexion = new SqlConnection(cn.getCadenaSQL()))
             {
                 conexion.Open();
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerMedico", conexion))
+                using (var cmd = new SqlCommand("sp_ObtenerMedico", conexion))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Codigo", codigo);
@@ -85,158 +97,152 @@ namespace Proyecto_Clinica_Universitaria.Datos
                             obj = new MedicoModel
                             {
                                 Codigo = Convert.ToInt32(dr["Codigo"]),
-                                Cedula = dr["Cedula"].ToString() ?? string.Empty,
-                                Nombre = dr["Nombre"].ToString() ?? string.Empty,
-                                Apellido = dr["Apellido"].ToString() ?? string.Empty,
+                                Cedula = dr["Cedula"]?.ToString() ?? string.Empty,
+                                Nombre = dr["Nombre"]?.ToString() ?? string.Empty,
+                                Apellido = dr["Apellido"]?.ToString() ?? string.Empty,
                                 EspecialidadCodigo = Convert.ToInt32(dr["EspecialidadCodigo"]),
                                 Telefono = dr["Telefono"] == DBNull.Value ? null : dr["Telefono"]!.ToString(),
                                 Correo = dr["Correo"] == DBNull.Value ? null : dr["Correo"]!.ToString(),
                                 Usuario = dr["Usuario"] == DBNull.Value ? null : dr["Usuario"]!.ToString(),
-
-                                // Si algún día la traes en el SP, la tomamos; si no, queda null
-                                Contrasena = TryGetString(dr, "Contrasena"),
-
-                                Estado = (dr["Estado"] != DBNull.Value && Convert.ToBoolean(dr["Estado"])) ? "Activo" : "Pasivo",
-                                ImagenMedico = dr["ImagenMedico"] == DBNull.Value ? null : dr["ImagenMedico"]!.ToString()
+                                Contrasena = TryGetString(dr, "Contrasena"), // si el SP la trae
+                                ImagenMedico = dr["ImagenMedico"] == DBNull.Value ? null : dr["ImagenMedico"]!.ToString(),
+                                // 👇 Permiso si lo trae el SP; si no, "Lectura"
+                                Permiso = TryGetString(dr, "Permiso") ?? "Lectura"
                             };
                         }
                     }
                 }
             }
-
             return obj;
         }
 
+        // =========================
+        // GUARDAR (INSERT)
+        // =========================
         public bool Guardar(MedicoModel obj)
         {
-            bool result;
             var cn = new Conexion();
 
-            try
+            // Normaliza el permiso antes de enviar a la BD
+            obj.Permiso = NormalizarPermiso(obj.Permiso);
+
+            using (var conexion = new SqlConnection(cn.getCadenaSQL()))
             {
-                using (var conexion = new SqlConnection(cn.getCadenaSQL()))
+                conexion.Open();
+                using (var cmd = new SqlCommand("sp_GuardarMedico", conexion))
                 {
-                    conexion.Open();
-                    using (SqlCommand cmd = new SqlCommand("sp_GuardarMedico", conexion))
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Cedula", obj.Cedula ?? "");
+                    cmd.Parameters.AddWithValue("@Nombre", obj.Nombre ?? "");
+                    cmd.Parameters.AddWithValue("@Apellido", obj.Apellido ?? "");
+                    cmd.Parameters.AddWithValue("@EspecialidadCodigo", obj.EspecialidadCodigo);
+                    cmd.Parameters.AddWithValue("@Telefono", DbNullIfNullOrEmpty(obj.Telefono));
+                    cmd.Parameters.AddWithValue("@Correo", DbNullIfNullOrEmpty(obj.Correo));
+                    cmd.Parameters.AddWithValue("@Usuario", DbNullIfNullOrEmpty(obj.Usuario));
+
+                    // IMPORTANTE: si Contrasena es NOT NULL en la BD, asegúrate que venga con valor.
+                    cmd.Parameters.AddWithValue("@Contrasena", string.IsNullOrWhiteSpace(obj.Contrasena) ? "" : obj.Contrasena);
+
+                    cmd.Parameters.AddWithValue("@ImagenMedico", DbNullIfNullOrEmpty(obj.ImagenMedico));
+
+                    // 👇 Nuevo parámetro @Permiso en el SP
+                    cmd.Parameters.AddWithValue("@Permiso", obj.Permiso);
+
+                    try
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-
-                        cmd.Parameters.AddWithValue("@Cedula", obj.Cedula);
-                        cmd.Parameters.AddWithValue("@Nombre", obj.Nombre);
-                        cmd.Parameters.AddWithValue("@Apellido", obj.Apellido);
-                        cmd.Parameters.AddWithValue("@EspecialidadCodigo", obj.EspecialidadCodigo);
-                        cmd.Parameters.AddWithValue("@Telefono", (object?)obj.Telefono ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Correo", (object?)obj.Correo ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Usuario", (object?)obj.Usuario ?? DBNull.Value);
-
-                        // IMPORTANTE: tu tabla tiene Contrasena NOT NULL
-                        // Asegúrate de que venga algo; si dejas null, fallará.
-                        cmd.Parameters.AddWithValue("@Contrasena", (object?)obj.Contrasena ?? ""); // <- mejor valida antes
-
-                        // "Activo"/"Pasivo"/"true"/"false"/"1"/"0" -> bit
-                        bool estadoBit =
-                            string.Equals(obj.Estado, "Activo", StringComparison.OrdinalIgnoreCase) ||
-                            obj.Estado == "1" ||
-                            string.Equals(obj.Estado, "true", StringComparison.OrdinalIgnoreCase);
-                        cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = estadoBit;
-
-                        cmd.Parameters.AddWithValue("@ImagenMedico", (object?)obj.ImagenMedico ?? DBNull.Value);
-
                         cmd.ExecuteNonQuery();
+                        return true;
+                    }
+                    catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
+                    {
+                        // Claves duplicadas (cedula/usuario únicos)
+                        throw new Exception("La Cédula o el Usuario ya existen. Usa valores distintos.", ex);
                     }
                 }
-                result = true;
             }
-            catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
-            {
-                throw new Exception("La Cédula o el Usuario ya existen. Usa valores distintos.", ex);
-            }
-            catch
-            {
-                throw;
-            }
-
-            return result;
         }
 
+        // =========================
+        // EDITAR (UPDATE)
+        // =========================
         public bool Editar(MedicoModel obj)
         {
-            bool result;
             var cn = new Conexion();
 
-            try
+            obj.Permiso = NormalizarPermiso(obj.Permiso);
+
+            using (var conexion = new SqlConnection(cn.getCadenaSQL()))
             {
-                using (var conexion = new SqlConnection(cn.getCadenaSQL()))
+                conexion.Open();
+                using (var cmd = new SqlCommand("sp_EditarMedico", conexion))
                 {
-                    conexion.Open();
-                    using (SqlCommand cmd = new SqlCommand("sp_EditarMedico", conexion))
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@Codigo", obj.Codigo);
+                    cmd.Parameters.AddWithValue("@Cedula", obj.Cedula ?? "");
+                    cmd.Parameters.AddWithValue("@Nombre", obj.Nombre ?? "");
+                    cmd.Parameters.AddWithValue("@Apellido", obj.Apellido ?? "");
+                    cmd.Parameters.AddWithValue("@EspecialidadCodigo", obj.EspecialidadCodigo);
+                    cmd.Parameters.AddWithValue("@Telefono", DbNullIfNullOrEmpty(obj.Telefono));
+                    cmd.Parameters.AddWithValue("@Correo", DbNullIfNullOrEmpty(obj.Correo));
+                    cmd.Parameters.AddWithValue("@Usuario", DbNullIfNullOrEmpty(obj.Usuario));
+
+                    // Si NO quieres sobreescribir la contraseña cuando venga vacía,
+                    // envía NULL y en el SP usa: Contrasena = COALESCE(@Contrasena, Contrasena)
+                    var contrasenaParam = string.IsNullOrWhiteSpace(obj.Contrasena)
+                        ? (object)DBNull.Value
+                        : obj.Contrasena!;
+                    cmd.Parameters.AddWithValue("@Contrasena", contrasenaParam);
+
+                    cmd.Parameters.AddWithValue("@ImagenMedico", DbNullIfNullOrEmpty(obj.ImagenMedico));
+
+                    // 👇 Nuevo parámetro @Permiso en el SP de edición
+                    cmd.Parameters.AddWithValue("@Permiso", obj.Permiso);
+
+                    try
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-
-                        cmd.Parameters.AddWithValue("@Codigo", obj.Codigo);
-                        cmd.Parameters.AddWithValue("@Cedula", obj.Cedula);
-                        cmd.Parameters.AddWithValue("@Nombre", obj.Nombre);
-                        cmd.Parameters.AddWithValue("@Apellido", obj.Apellido);
-                        cmd.Parameters.AddWithValue("@EspecialidadCodigo", obj.EspecialidadCodigo);
-                        cmd.Parameters.AddWithValue("@Telefono", (object?)obj.Telefono ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Correo", (object?)obj.Correo ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Usuario", (object?)obj.Usuario ?? DBNull.Value);
-
-                        // OJO: si no quieres sobreescribir con vacío, ver nota de SP abajo
-                        cmd.Parameters.AddWithValue("@Contrasena", (object?)obj.Contrasena ?? "");
-
-                        bool estadoBit =
-                            string.Equals(obj.Estado, "Activo", StringComparison.OrdinalIgnoreCase) ||
-                            obj.Estado == "1" ||
-                            string.Equals(obj.Estado, "true", StringComparison.OrdinalIgnoreCase);
-                        cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = estadoBit;
-
-                        cmd.Parameters.AddWithValue("@ImagenMedico", (object?)obj.ImagenMedico ?? DBNull.Value);
-
                         cmd.ExecuteNonQuery();
+                        return true;
+                    }
+                    catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
+                    {
+                        throw new Exception("La Cédula o el Usuario ya existen. Usa valores distintos.", ex);
                     }
                 }
-                result = true;
             }
-            catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
-            {
-                throw new Exception("La Cédula o el Usuario ya existen. Usa valores distintos.", ex);
-            }
-            catch
-            {
-                throw;
-            }
-
-            return result;
         }
 
+        // =========================
+        // ELIMINAR
+        // =========================
         public bool Eliminar(int codigo)
         {
-            bool result;
             var cn = new Conexion();
 
-            try
+            using (var conexion = new SqlConnection(cn.getCadenaSQL()))
             {
-                using (var conexion = new SqlConnection(cn.getCadenaSQL()))
+                conexion.Open();
+                using (var cmd = new SqlCommand("sp_EliminarMedico", conexion))
                 {
-                    conexion.Open();
-                    using (SqlCommand cmd = new SqlCommand("sp_EliminarMedico", conexion))
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Codigo", codigo);
+                    try
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@Codigo", codigo);
                         cmd.ExecuteNonQuery();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
                     }
                 }
-                result = true;
             }
-            catch
-            {
-                result = false;
-            }
-
-            return result;
         }
 
+        // =========================
+        // LISTAR SOLO NOMBRES (utilidad)
+        // =========================
         public List<MedicoModel> ListarNombres()
         {
             var lista = new List<MedicoModel>();
@@ -245,24 +251,56 @@ namespace Proyecto_Clinica_Universitaria.Datos
             using (var conexion = new SqlConnection(cn.getCadenaSQL()))
             {
                 conexion.Open();
-                // En tu BD la tabla es "Medico" (singular)
-                using (SqlCommand cmd = new SqlCommand("SELECT Codigo, Nombre FROM Medico", conexion))
+                using (var cmd = new SqlCommand("SELECT Codigo, Nombre FROM Medico", conexion))
+                using (var dr = cmd.ExecuteReader())
                 {
-                    using (var dr = cmd.ExecuteReader())
+                    while (dr.Read())
                     {
-                        while (dr.Read())
+                        lista.Add(new MedicoModel
                         {
-                            lista.Add(new MedicoModel
-                            {
-                                Codigo = dr.GetInt32(0),
-                                Nombre = dr.GetString(1)
-                            });
-                        }
+                            Codigo = dr.GetInt32(0),
+                            Nombre = dr.GetString(1)
+                        });
                     }
                 }
             }
-
             return lista;
         }
+
+        public MedicoModel? Autenticar(string usuario, string contrasena)
+        {
+            var cn = new Conexion();
+            using var conexion = new SqlConnection(cn.getCadenaSQL());
+            conexion.Open();
+
+            // Opción rápida con SELECT directo
+            // (recomendación futura: guardar contraseñas con hash y comparar hash aquí)
+            using var cmd = new SqlCommand(@"
+        SELECT TOP 1
+            Codigo, Usuario, Contrasena, Nombre, Apellido, Permiso, ImagenMedico
+        FROM Medico
+        WHERE Usuario = @u AND Contrasena = @p
+          -- AND Estado = 'Activo'   -- <- descomenta si aplicas estado
+    ", conexion);
+
+            cmd.Parameters.AddWithValue("@u", usuario);
+            cmd.Parameters.AddWithValue("@p", contrasena);
+
+            using var dr = cmd.ExecuteReader();
+            if (!dr.Read()) return null;
+
+            return new MedicoModel
+            {
+                Codigo = Convert.ToInt32(dr["Codigo"]),
+                Usuario = dr["Usuario"]?.ToString(),
+                // Contrasena = dr["Contrasena"]?.ToString(), // normalmente no hace falta devolverla
+                Nombre = dr["Nombre"]?.ToString(),
+                Apellido = dr["Apellido"]?.ToString(),
+                Permiso = dr["Permiso"]?.ToString() ?? "Lectura",
+                ImagenMedico = dr["ImagenMedico"] == DBNull.Value ? null : dr["ImagenMedico"]!.ToString()
+            };
+        }
+
+
     }
 }

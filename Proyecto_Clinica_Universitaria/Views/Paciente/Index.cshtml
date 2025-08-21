@@ -12,6 +12,15 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor Accessor
+@{
+    var permisoActual = Accessor.HttpContext?.Session.GetString("Permiso") ?? "Lectura";
+    var esAdmin = string.Equals(permisoActual, "Administracion", StringComparison.OrdinalIgnoreCase);
+    var esEditor = string.Equals(permisoActual, "Edicion", StringComparison.OrdinalIgnoreCase);
+    var puedeGestionar = esAdmin || esEditor; // crear/editar/eliminar
+}
+
+
 
 <main class="p-3">
 
@@ -96,19 +105,29 @@
 
     <!-- BARRA DE ACCIONES -->
     <section class="d-flex flex-wrap justify-content-center gap-3 mt-4 p-3 bg-white rounded">
-        <button type="button" id="btnNuevo" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;">
-            <i class="bi bi-plus-circle"></i>
-            <span class="d-none d-md-inline">Nuevo</span>
-        </button>
-        <button type="button" id="btnEditar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;" disabled>
-            <i class="bi bi-pencil-square"></i>
-            <span class="d-none d-md-inline">Editar</span>
-        </button>
-        <button type="button" id="btnEliminar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;" disabled>
-            <i class="bi bi-trash"></i>
-            <span class="d-none d-md-inline">Eliminar</span>
-        </button>
+        @if (puedeGestionar)
+        {
+            <button type="button" id="btnNuevo" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;">
+                <i class="bi bi-plus-circle"></i>
+                <span class="d-none d-md-inline">Nuevo</span>
+            </button>
+            <button type="button" id="btnEditar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;" disabled>
+                <i class="bi bi-pencil-square"></i>
+                <span class="d-none d-md-inline">Editar</span>
+            </button>
+            <button type="button" id="btnEliminar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill" style="background-color:#880C09;" disabled>
+                <i class="bi bi-trash"></i>
+                <span class="d-none d-md-inline">Eliminar</span>
+            </button>
+        }
+        else
+        {
+            <div class="text-muted small text-center w-100">
+                Permisos: <strong>@permisoActual</strong> (solo lectura)
+            </div>
+        }
     </section>
+
 
 </main>
 
@@ -129,12 +148,15 @@
             <div class="modal-body text-center">
                 <p id="confirmDeleteText" class="mb-0">¿Eliminar paciente?</p>
             </div>
-            <div class="modal-footer d-flex justify-content-center">
+            <div class="modal-footer d-flex justify-content-between">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="btnConfirmarEliminar" class="btn text-white" style="background-color:#880C09;">
-                    <i class="bi bi-trash"></i> Aceptar
-                </button>
+                @if (puedeGestionar)
+                {
+                    <button type="button" id="btnGuardarModalPaciente" class="btn btn-primary">Guardar</button>
+                }
             </div>
+
+
         </div>
     </div>
 </div>

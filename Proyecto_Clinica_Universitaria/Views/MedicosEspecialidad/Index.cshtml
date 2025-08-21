@@ -3,6 +3,15 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Accessor
+@{
+    var permisoActual = Accessor.HttpContext?.Session.GetString("Permiso") ?? "Lectura";
+    bool esAdmin =
+        string.Equals(permisoActual, "Administracion", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(permisoActual, "Administración", StringComparison.OrdinalIgnoreCase);
+}
+
 @using Proyecto_Clinica_Universitaria.Models
 @model Proyecto_Clinica_Universitaria.Models.MedicosEspecialidadModel
 
@@ -15,6 +24,17 @@
 }
 
 <main class="p-3">
+
+    <!-- Aviso de permisos -->
+    @if (!esAdmin)
+    {
+        <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>
+                Estás en modo <strong>@permisoActual</strong>. No puedes <strong>crear, editar ni eliminar</strong> especialidades.
+            </div>
+        </div>
+    }
 
     <!-- Tabla de Especialidades -->
     <section class="bg-white p-3 rounded mb-3">
@@ -70,40 +90,67 @@
 
     <!-- BARRA DE ACCIONES -->
     <section class="d-flex flex-wrap justify-content-center gap-3 mt-4 p-3 bg-white rounded">
-        <button type="button" id="btnNuevo"
-                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
-                style="background-color:#880C09;">
-            <i class="bi bi-plus-circle"></i>
-            <span class="d-none d-md-inline">Nuevo</span>
-        </button>
+        @if (esAdmin)
+        {
+            <button type="button" id="btnNuevo"
+                    class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                    style="background-color:#880C09;">
+                <i class="bi bi-plus-circle"></i>
+                <span class="d-none d-md-inline">Nuevo</span>
+            </button>
 
-        <button type="button" id="btnEditar"
-                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
-                style="background-color:#880C09;" disabled>
-            <i class="bi bi-pencil"></i>
-            <span class="d-none d-md-inline">Editar</span>
-        </button>
+            <button type="button" id="btnEditar"
+                    class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                    style="background-color:#880C09;" disabled>
+                <i class="bi bi-pencil"></i>
+                <span class="d-none d-md-inline">Editar</span>
+            </button>
 
-        <button type="button" id="btnEliminar"
-                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
-                style="background-color:#880C09;" disabled>
-            <i class="bi bi-trash"></i>
-            <span class="d-none d-md-inline">Eliminar</span>
-        </button>
+            <button type="button" id="btnEliminar"
+                    class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                    style="background-color:#880C09;" disabled>
+                <i class="bi bi-trash"></i>
+                <span class="d-none d-md-inline">Eliminar</span>
+            </button>
 
-        <!-- Este botón envía el formulario del modal -->
-        <button type="submit" id="btnGuardar" form="frmEspecialidad"
-                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
-                style="background-color:#880C09;" disabled>
-            <i class="bi bi-save"></i>
-            <span class="d-none d-md-inline">Guardar</span>
-        </button>
+            <button type="submit" id="btnGuardar" form="frmEspecialidad"
+                    class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2 flex-fill"
+                    style="background-color:#880C09;" disabled>
+                <i class="bi bi-save"></i>
+                <span class="d-none d-md-inline">Guardar</span>
+            </button>
+        }
+        else
+        {
+            <button type="button" id="btnNuevo" class="btn text-white px-3 py-2 flex-fill"
+                    style="background-color:#880C09; opacity:.6;" disabled title="No tienes permiso para crear">
+                <i class="bi bi-plus-circle"></i> <span class="d-none d-md-inline">Nuevo</span>
+            </button>
+            <button type="button" id="btnEditar" class="btn text-white px-3 py-2 flex-fill"
+                    style="background-color:#880C09; opacity:.6;" disabled title="No tienes permiso para editar">
+                <i class="bi bi-pencil"></i> <span class="d-none d-md-inline">Editar</span>
+            </button>
+            <button type="button" id="btnEliminar" class="btn text-white px-3 py-2 flex-fill"
+                    style="background-color:#880C09; opacity:.6;" disabled title="No tienes permiso para eliminar">
+                <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Eliminar</span>
+            </button>
+            <button type="submit" id="btnGuardar" form="frmEspecialidad"
+                    class="btn text-white px-3 py-2 flex-fill"
+                    style="background-color:#880C09; opacity:.6;" disabled title="No tienes permiso para guardar">
+                <i class="bi bi-save"></i> <span class="d-none d-md-inline">Guardar</span>
+            </button>
+
+            <div class="text-muted small text-center w-100 mt-2">
+                Acciones deshabilitadas por permiso: <strong>@permisoActual</strong>.
+            </div>
+        }
     </section>
 
 </main>
 
 <!-- Form oculto para eliminar -->
 <form asp-action="Eliminar" asp-controller="MedicosEspecialidad" method="post" id="frmEliminarEsp" class="d-none">
+    @Html.AntiForgeryToken()
     <input type="hidden" name="codigo" id="hdnEliminarCodigoEsp" />
 </form>
 
@@ -129,8 +176,7 @@
 </div>
 
 <!-- MODAL: Crear/Editar Especialidad -->
-
-<div class="modal faden" id="modalEspecialidad" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEspecialidad" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable d-flex justify-content-center align-items-center">
         <div class="modal-content">
             <div class="modal-header">
@@ -139,6 +185,7 @@
             </div>
             <div class="modal-body">
                 <form asp-action="GuardarOEditar" asp-controller="MedicosEspecialidad" method="post" id="frmEspecialidad">
+                    @Html.AntiForgeryToken()
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Código</label>
@@ -157,7 +204,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="btnGuardarModalEspecialidad" class="btn btn-primary">Guardar</button>
+                @if (esAdmin)
+                {
+                    <button type="button" id="btnGuardarModalEspecialidad" class="btn btn-primary">Guardar</button>
+                }
             </div>
         </div>
     </div>
@@ -165,6 +215,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // Permiso actual (inyectado)
+      const ES_ADMIN = @esAdmin.ToString().ToLower(); // true/false literal
+
       // Helpers
       const $ = (sel) => document.querySelector(sel);
       const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ""; };
@@ -183,9 +236,9 @@
       // Buscar
       const txtBuscar  = $("#txtBuscarEspecialidades");
 
-      // Tablas/filas
+      // Tabla/filas
       const table = $("#tblEspecialidades");
-      const rows  = table?.querySelectorAll("tbody tr.row-esp") || [];
+      const rows  = table ? table.querySelectorAll("tbody tr.row-esp") : [];
 
       // Modales eliminar
       const confirmText = $("#confirmDeleteTextEsp");
@@ -196,10 +249,19 @@
       const modalEspecialidadEl = $("#modalEspecialidad");
       let modalEspecialidad = null;
       const openEspModal = () => {
+        if (!ES_ADMIN) { alert("No tienes permiso para abrir este formulario."); return; }
         if (!hasBS) { alert("Falta Bootstrap JS (bootstrap.bundle.min.js) en _Layout."); return; }
         if (!modalEspecialidad) modalEspecialidad = new bootstrap.Modal(modalEspecialidadEl);
         modalEspecialidad.show();
       };
+
+      // Estado inicial si no es admin (defensa en UI)
+      if (!ES_ADMIN) {
+        setDisabled(btnNuevo, true);
+        setDisabled(btnEditar, true);
+        setDisabled(btnEliminar, true);
+        setDisabled(btnGuardar, true);
+      }
 
       // Filtro
       txtBuscar?.addEventListener('input', function(){
@@ -216,21 +278,21 @@
           if (selectedRow) selectedRow.classList.remove("table-active");
           tr.classList.add("table-active");
           selectedRow = tr;
-          selectedId = parseInt(tr.dataset.codigo || "0");
+          selectedId = parseInt(tr.dataset.codigo || "0", 10);
 
-          // precargar valores (como en Médicos)
           setVal("Codigo", tr.dataset.codigo);
           setVal("Especialidad", tr.dataset.especialidad);
           setVal("Descripcion", tr.dataset.descripcion);
 
-          setDisabled(btnEditar, false);
-          setDisabled(btnEliminar, false);
-          setDisabled(btnGuardar, false);
+          setDisabled(btnEditar, !ES_ADMIN);
+          setDisabled(btnEliminar, !ES_ADMIN);
+          setDisabled(btnGuardar, !ES_ADMIN);
         });
       });
 
       // Nuevo
       btnNuevo?.addEventListener("click", () => {
+        if (!ES_ADMIN) { alert("No tienes permiso para crear especialidades."); return; }
         const form = $("#frmEspecialidad");
         form?.reset();
         setVal("Codigo", 0);
@@ -247,39 +309,41 @@
       // Editar
       btnEditar?.addEventListener("click", () => {
         if (!selectedId) { alert("Selecciona una especialidad de la tabla."); return; }
+        if (!ES_ADMIN) { alert("No tienes permiso para editar especialidades."); return; }
         openEspModal();
         setTimeout(() => $("#Especialidad")?.focus(), 150);
       });
 
       // Guardar (modal)
       $("#btnGuardarModalEspecialidad")?.addEventListener("click", () => {
+        if (!ES_ADMIN) { alert("No tienes permiso para guardar."); return; }
         $("#frmEspecialidad")?.submit();
       });
-
-      // Guardar (barra) ya envía el mismo form vía atributo form="frmEspecialidad"
 
       // Eliminar -> confirm
       btnEliminar?.addEventListener("click", () => {
         if (!selectedId) { alert("Selecciona una especialidad de la tabla."); return; }
+        if (!ES_ADMIN) { alert("No tienes permiso para eliminar especialidades."); return; }
         $("#hdnEliminarCodigoEsp").value = selectedId;
         const texto = `¿Eliminar la especialidad "${selectedRow?.dataset?.especialidad ?? ''}" (Código: ${selectedId})?`;
         if (confirmText) confirmText.textContent = texto;
-
         if (hasBS) new bootstrap.Modal(modalConfirmEl).show();
         else if (confirm(texto)) $("#frmEliminarEsp").submit();
       });
 
       // Confirmar eliminación
       btnConfirmarEliminar?.addEventListener("click", () => {
+        if (!ES_ADMIN) { alert("No tienes permiso para eliminar especialidades."); return; }
         $("#frmEliminarEsp").submit();
       });
 
-      // Habilitar Guardar si cambian campos del form del modal
+      // Habilitar Guardar si cambian campos (solo admin)
       document.addEventListener("input", (ev) => {
-        if (ev.target.closest("#frmEspecialidad")) setDisabled(btnGuardar, false);
+        if (ev.target.closest("#frmEspecialidad")) setDisabled(btnGuardar, !ES_ADMIN);
       });
       document.addEventListener("change", (ev) => {
-        if (ev.target.closest("#frmEspecialidad")) setDisabled(btnGuardar, false);
+        if (ev.target.closest("#frmEspecialidad")) setDisabled(btnGuardar, !ES_ADMIN);
       });
     });
 </script>
+

@@ -5,20 +5,39 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Accessor
+@{
+    var permisoActual = Accessor.HttpContext?.Session.GetString("Permiso") ?? "Lectura";
+    bool puedeEditar =
+        string.Equals(permisoActual, "Edicion", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(permisoActual, "Administracion", StringComparison.OrdinalIgnoreCase);
+}
+
 @section Styles {
     <link href="~/css/historialConsultasStyle.css" rel="stylesheet" />
 }
 
 <main class="p-4">
-    <!-- Formulario oculto para el token antiforgery -->
+    <!-- Token antiforgery oculto -->
     <form id="formAntiForgery" method="post" style="display:none;">
         @Html.AntiForgeryToken()
     </form>
 
-    <!-- Top form -->
-    <div class="card-box ">
-        <div class="row g-3 align-items-center">
+    <!-- Aviso de permisos si no puede editar -->
+    @if (!puedeEditar)
+    {
+        <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>
+                Estás en modo <strong>@permisoActual</strong>. No puedes <strong>crear, editar ni eliminar</strong> consultas.
+            </div>
+        </div>
+    }
 
+    <!-- Top form -->
+    <div class="card-box">
+        <div class="row g-3 align-items-center">
             <div class="row">
                 <!-- Historia Clínica -->
                 <div class="shadow-lg p-3 col-md-4 mb-3 history-input rounded">
@@ -26,18 +45,6 @@
                     <div class="text-end">1</div>
                     <hr class="my-2">
                     <div class="text-start">ESPECIALIDAD</div>
-                </div>
-
-                <!-- Botones -->
-                <div class="d-flex justify-content-center col-md-4 ms-auto flex-wrap">
-                    <button class="btn btn-dark d-flex align-items-center justify-content-center gap-2 px-3 m-2 flex-grow-1" style="min-width: 140px;">
-                        <i class="bi bi-printer"></i>
-                        <span class="d-none d-md-inline">IMPRIMIR</span>
-                    </button>
-                    <button class="btn btn-dark d-flex align-items-center justify-content-center gap-2 px-3 m-2 flex-grow-1" style="min-width: 140px;">
-                        <i class="bi bi-file-earmark-excel"></i>
-                        <span class="d-none d-md-inline">EXCEL</span>
-                    </button>
                 </div>
             </div>
 
@@ -102,19 +109,52 @@
     </div>
 </main>
 
+<!-- Barra de acciones: solo habilitada si puedeEditar -->
 <section class="d-flex justify-content-center gap-3 mt-4 p-3 bg-white rounded">
-    <a asp-controller="Consultas" asp-action="Index" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2" style="background-color:#880C09;">
-        <i class="bi bi-plus-circle"></i>
-        <span class="d-none d-md-inline">Nuevo</span>
-    </a>
-    <button id="btnEliminar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2" style="background-color:#880C09;" disabled>
-        <i class="bi bi-trash"></i>
-        <span class="d-none d-md-inline">Eliminar</span>
-    </button>
-    <button id="btnEditar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2" style="background-color:#880C09;" disabled>
-        <i class="bi bi-pencil-square"></i>
-        <span class="d-none d-md-inline">Editar</span>
-    </button>
+    @if (puedeEditar)
+    {
+        <a asp-controller="Consultas" asp-action="Index"
+           class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2"
+           style="background-color:#880C09;">
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-md-inline">Nuevo</span>
+        </a>
+        <button id="btnEliminar"
+                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2"
+                style="background-color:#880C09;" disabled>
+            <i class="bi bi-trash"></i>
+            <span class="d-none d-md-inline">Eliminar</span>
+        </button>
+        <button id="btnEditar"
+                class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2"
+                style="background-color:#880C09;" disabled>
+            <i class="bi bi-pencil-square"></i>
+            <span class="d-none d-md-inline">Editar</span>
+        </button>
+    }
+    else
+    {
+        <!-- Versión deshabilitada visualmente -->
+        <button class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2"
+                style="background-color:#880C09; opacity:.6;" disabled title="No tienes permiso para crear">
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-md-inline">Nuevo</span>
+        </button>
+        <button id="btnEliminar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2"
+                style="background-color:#880C09; opacity:.6;" disabled title="No tienes permiso para eliminar">
+            <i class="bi bi-trash"></i>
+            <span class="d-none d-md-inline">Eliminar</span>
+        </button>
+        <button id="btnEditar" class="btn text-white px-3 py-2 d-flex align-items-center justify-content-center gap-2"
+                style="background-color:#880C09; opacity:.6;" disabled title="No tienes permiso para editar">
+            <i class="bi bi-pencil-square"></i>
+            <span class="d-none d-md-inline">Editar</span>
+        </button>
+
+        <div class="text-muted small text-center w-100 mt-2">
+            Acciones deshabilitadas por permiso: <strong>@permisoActual</strong>.
+        </div>
+    }
 </section>
 
 <!-- Modal de confirmación -->
@@ -144,36 +184,51 @@
 
 @section Scripts {
     <script>
+        const PUEDE_EDITAR = @puedeEditar.ToString().ToLower(); // true/false literal
+
         let selectedRow = null;
         let consultaId = null;
 
+        const btnEliminar = document.getElementById('btnEliminar');
+        const btnEditar   = document.getElementById('btnEditar');
+
+        // Selección de filas (si no puede editar, solo resaltamos pero no habilitamos botones)
         document.querySelectorAll('#consultasTable tbody tr').forEach(row => {
             row.addEventListener('click', () => {
-                if (selectedRow) {
-                    selectedRow.classList.remove('table-active');
-                }
+                if (selectedRow) selectedRow.classList.remove('table-active');
+
                 if (selectedRow === row) {
                     selectedRow = null;
-                    document.getElementById('btnEliminar').disabled = true;
-                    document.getElementById('btnEditar').disabled = true;
+                    if (btnEliminar) btnEliminar.disabled = true;
+                    if (btnEditar)   btnEditar.disabled = true;
                     return;
                 }
+
                 selectedRow = row;
                 row.classList.add('table-active');
-                document.getElementById('btnEliminar').disabled = false;
-                document.getElementById('btnEditar').disabled = false;
+
+                if (PUEDE_EDITAR) {
+                    if (btnEliminar) btnEliminar.disabled = false;
+                    if (btnEditar)   btnEditar.disabled = false;
+                } else {
+                    if (btnEliminar) btnEliminar.disabled = true;
+                    if (btnEditar)   btnEditar.disabled = true;
+                }
             });
         });
 
-        document.getElementById('btnEliminar').addEventListener('click', () => {
+        // Eliminar (solo si tiene permiso)
+        btnEliminar?.addEventListener('click', () => {
+            if (!PUEDE_EDITAR) { alert("No tienes permiso para eliminar consultas."); return; }
             if (!selectedRow) return;
-            consultaId = selectedRow.getAttribute('data-id');
 
+            consultaId = selectedRow.getAttribute('data-id');
             let deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
             deleteModal.show();
         });
 
         document.getElementById('confirmDelete').addEventListener('click', () => {
+            if (!PUEDE_EDITAR) { alert("No tienes permiso para eliminar consultas."); return; }
             const token = document.querySelector('#formAntiForgery input[name="__RequestVerificationToken"]').value;
 
             fetch('/Consultas/Eliminar', {
@@ -189,10 +244,10 @@
             })
             .then(response => {
                 if (response.ok) {
-                    selectedRow.remove();
+                    selectedRow?.remove();
                     selectedRow = null;
-                    document.getElementById('btnEliminar').disabled = true;
-                    document.getElementById('btnEditar').disabled = true;
+                    if (btnEliminar) btnEliminar.disabled = true;
+                    if (btnEditar)   btnEditar.disabled = true;
                 } else {
                     alert("Error al eliminar la consulta.");
                 }
@@ -200,11 +255,13 @@
             .catch(() => alert("Error de conexión con el servidor."))
             .finally(() => {
                 let deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
-                deleteModal.hide();
+                deleteModal?.hide();
             });
         });
 
-        document.getElementById('btnEditar').addEventListener('click', () => {
+        // Editar (solo si tiene permiso)
+        btnEditar?.addEventListener('click', () => {
+            if (!PUEDE_EDITAR) { alert("No tienes permiso para editar consultas."); return; }
             if (!selectedRow) return;
             const id = selectedRow.getAttribute('data-id');
             window.location.href = `/Consultas/Index?id=${id}`;

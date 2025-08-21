@@ -23,11 +23,10 @@ namespace Proyecto_Clinica_Universitaria.Models
         // En la BD se llama Contrasena
         public string? Contrasena { get; set; }
 
-        // Activo | Pasivo
-        public string Estado { get; set; } = "Activo";
-
         // Solo para mostrar (no se envía al SP)
         public string? Especialidad { get; set; }
+
+        public string Permiso { get; set; } = "Lectura";
 
         public string? ImagenMedico { get; set; }
 

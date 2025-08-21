@@ -1,7 +1,7 @@
 ﻿@{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
-    bool mostrarSidebar = !(currentController == "Home" && currentAction == "Index"); // 👈 true en todo excepto Login
+    bool mostrarSidebar = !(currentController == "Home" && currentAction == "Index"); 
 }
 
 <!DOCTYPE html>
@@ -26,9 +26,7 @@
 </head>
 
 <body class="min-vh-100">
-    @* 👈 QUITÉ id="sidebar" del body *@
 
-    @* Fondo oscuro (overlay para móvil) SOLO cuando hay sidebar *@
     @if (mostrarSidebar)
     {
         <div id="overlay" class="d-sm-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none" style="z-index: 1040;"></div>

@@ -1,15 +1,24 @@
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Registrar los servicios para inyecci�n de dependencias
+// ===== Inyección de dependencias propias =====
 builder.Services.AddScoped<Proyecto_Clinica_Universitaria.Datos.ConsultasDatos>();
 builder.Services.AddScoped<Proyecto_Clinica_Universitaria.Datos.PacienteDatos>();
 builder.Services.AddScoped<Proyecto_Clinica_Universitaria.Datos.MedicoDatos>();
 builder.Services.AddScoped<Proyecto_Clinica_Universitaria.Datos.MedicamentosDatos>();
 builder.Services.AddSingleton<Proyecto_Clinica_Universitaria.Servicios.AzureBlobService>();
 
+// ===== HttpContext + Session =====
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache(); // requerido por Session
+builder.Services.AddSession(opt =>
+{
+    opt.IdleTimeout = TimeSpan.FromMinutes(60);
+    opt.Cookie.HttpOnly = true;
+    opt.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -25,12 +34,17 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+
+app.UseSession();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+
 app.Run();
+
 
 
